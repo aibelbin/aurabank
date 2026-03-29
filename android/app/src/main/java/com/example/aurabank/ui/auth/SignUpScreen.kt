@@ -51,21 +51,56 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(
-    onLoginSuccess: () -> Unit,
-    onCreateAccount: () -> Unit = {}
+fun SignUpScreen(
+    onSignUpSuccess: () -> Unit,
+    onBack: () -> Unit = {}
 ) {
-    val viewModel: LoginViewModel = viewModel(factory = LoginViewModel.Factory)
+    val viewModel: SignUpViewModel = viewModel(factory = SignUpViewModel.Factory)
     val uiState by viewModel.uiState.collectAsState()
 
-    // Navigate on success
     LaunchedEffect(uiState.success) {
-        if (uiState.success) onLoginSuccess()
+        if (uiState.success) onSignUpSuccess()
     }
 
+    // Show confirmation message instead of navigating
+    if (uiState.awaitingConfirmation) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.fillMaxSize().background(Parchment),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 36.dp)
+            ) {
+                Text("✦", color = Gold, fontSize = 32.sp)
+                Spacer(Modifier.height(16.dp))
+                Text("Check your email", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Ink)
+                Spacer(Modifier.height(8.dp))
+                Text("We sent a confirmation link.\nConfirm then sign in.", fontSize = 14.sp, color = Muted, letterSpacing = 0.3.sp)
+                Spacer(Modifier.height(32.dp))
+                Text(
+                    text = "Back to sign in",
+                    color = Gold,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onBack() }
+                )
+            }
+        }
+        return
+    }
+
+    var name            by remember { mutableStateOf("") }
+    var org             by remember { mutableStateOf("") }
     var email           by remember { mutableStateOf("") }
     var password        by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val passwordsMatch = password.isNotEmpty() && password == confirmPassword
 
     val titleAlpha = remember { Animatable(0f) }
     val titleSlide = remember { Animatable(20f) }
@@ -101,10 +136,10 @@ fun LoginScreen(
             OrbAnimation(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(screenHeight * 0.32f)
+                    .height(screenHeight * 0.22f)
             )
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(24.dp))
 
             Column(
                 modifier = Modifier
@@ -113,13 +148,13 @@ fun LoginScreen(
                     .alpha(titleAlpha.value)
                     .offset(y = titleSlide.value.dp)
             ) {
-                Text("Aura", fontSize = 46.sp, fontWeight = FontWeight.Bold, color = Ink, letterSpacing = (-1.5).sp)
-                Text("Bank", fontSize = 46.sp, fontWeight = FontWeight.Light, color = Gold, letterSpacing = (-1.5).sp, modifier = Modifier.offset(y = (-10).dp))
+                Text("Create", fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Ink, letterSpacing = (-1.5).sp)
+                Text("Account", fontSize = 40.sp, fontWeight = FontWeight.Light, color = Gold, letterSpacing = (-1.5).sp, modifier = Modifier.offset(y = (-8).dp))
                 Spacer(Modifier.height(6.dp))
-                Text("Your social currency", fontSize = 13.sp, color = Muted, letterSpacing = 0.4.sp)
+                Text("Join the social economy", fontSize = 13.sp, color = Muted, letterSpacing = 0.4.sp)
             }
 
-            Spacer(Modifier.height(36.dp))
+            Spacer(Modifier.height(28.dp))
 
             Column(
                 modifier = Modifier
@@ -128,6 +163,23 @@ fun LoginScreen(
                     .alpha(formAlpha.value)
                     .offset(y = formSlide.value.dp)
             ) {
+                // → user.name
+                AuraInput(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = "FULL NAME",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
+
+                // → user.org (optional)
+                AuraInput(
+                    value = org,
+                    onValueChange = { org = it },
+                    label = "ORGANISATION  ·  optional",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
+
+                // → Supabase Auth
                 AuraInput(
                     value = email,
                     onValueChange = { email = it },
@@ -135,6 +187,7 @@ fun LoginScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
 
+                // → Supabase Auth
                 AuraInput(
                     value = password,
                     onValueChange = { password = it },
@@ -156,18 +209,26 @@ fun LoginScreen(
                     }
                 )
 
-                Spacer(Modifier.height(4.dp))
-
-                Text(
-                    text = "Forgot password?",
-                    color = Muted,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
+                // Validation only — not stored
+                AuraInput(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = "CONFIRM PASSWORD",
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingContent = {
+                        if (confirmPassword.isNotEmpty()) {
+                            Text(
+                                text = if (passwordsMatch) "✓" else "✗",
+                                color = if (passwordsMatch) Gold else Muted,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 )
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(8.dp))
 
                 // Error message
                 if (uiState.error != null) {
@@ -179,15 +240,18 @@ fun LoginScreen(
                     )
                 }
 
-                // Sign in button
+                // Create account button
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
                         .clip(RoundedCornerShape(26.dp))
-                        .background(Ink)
-                        .clickable(enabled = !uiState.isLoading) {
-                            viewModel.login(email, password)
+                        .background(
+                            if (!passwordsMatch && confirmPassword.isNotEmpty()) Ink.copy(alpha = 0.4f)
+                            else Ink
+                        )
+                        .clickable(enabled = !uiState.isLoading && (confirmPassword.isEmpty() || passwordsMatch)) {
+                            viewModel.signUp(email, password, name, org)
                         },
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
@@ -199,7 +263,7 @@ fun LoginScreen(
                             modifier = Modifier.size(20.dp)
                         )
                     } else {
-                        Text("Sign in", color = Parchment, fontSize = 15.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.8.sp)
+                        Text("Create account", color = Parchment, fontSize = 15.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.8.sp)
                     }
                 }
 
@@ -209,16 +273,16 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("New here?  ", color = Muted, fontSize = 13.sp)
+                    Text("Already have an account?  ", color = Muted, fontSize = 13.sp)
                     Text(
-                        text = "Create account",
+                        text = "Sign in",
                         color = Gold,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { onCreateAccount() }
+                        ) { onBack() }
                     )
                 }
 

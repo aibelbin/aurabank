@@ -8,7 +8,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 
 object AppModule {
-    val authRepository by lazy { AuthRepository(supabaseClient.auth) }
+    val authRepository by lazy { AuthRepository(supabaseClient.auth, supabaseClient.postgrest) }
     val bankRepository by lazy { BankRepository(supabaseClient.postgrest) }
     val transactionRepository by lazy { TransactionRepository(supabaseClient.postgrest) }
 }
