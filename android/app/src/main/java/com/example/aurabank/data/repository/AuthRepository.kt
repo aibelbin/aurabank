@@ -71,6 +71,9 @@ class AuthRepository(
         )
     }
 
+    // ── Sign out ───────────────────────────────────────────────────────────
+    suspend fun signOut() = auth.signOut()
+
     // ── Session ────────────────────────────────────────────────────────────
     fun currentSession() = auth.currentSessionOrNull()
 }

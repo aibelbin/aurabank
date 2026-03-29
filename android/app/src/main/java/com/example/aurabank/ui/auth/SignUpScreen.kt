@@ -45,7 +45,7 @@ import com.example.aurabank.ui.components.AuraInput
 import com.example.aurabank.ui.components.Gold
 import com.example.aurabank.ui.components.Ink
 import com.example.aurabank.ui.components.Muted
-import com.example.aurabank.ui.components.OrbAnimation
+import com.example.aurabank.ui.components.CozyParticleAnimation
 import com.example.aurabank.ui.components.Parchment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -133,7 +133,7 @@ fun SignUpScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OrbAnimation(
+            CozyParticleAnimation(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(screenHeight * 0.22f)

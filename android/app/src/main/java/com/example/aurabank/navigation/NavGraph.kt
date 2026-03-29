@@ -53,7 +53,14 @@ fun NavGraph() {
             )
         }
         composable(Screen.Home.route) {
-            HomeScreen(onSubmitClick = { navController.navigate(Screen.Submit.route) })
+            HomeScreen(
+                onSubmitClick = { navController.navigate(Screen.Submit.route) },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
         composable(Screen.Submit.route) {
             SubmitScreen(onSubmitted = { navController.popBackStack() })
