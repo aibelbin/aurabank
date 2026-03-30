@@ -1,8 +1,6 @@
 package com.example.aurabank.ui.auth
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -49,8 +47,6 @@ import com.example.aurabank.ui.components.Ink
 import com.example.aurabank.ui.components.Muted
 import com.example.aurabank.ui.components.CozyParticleAnimation
 import com.example.aurabank.ui.components.Parchment
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -69,23 +65,10 @@ fun LoginScreen(
     var password        by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val titleAlpha = remember { Animatable(0f) }
-    val titleSlide = remember { Animatable(20f) }
-    val formAlpha  = remember { Animatable(0f) }
-    val formSlide  = remember { Animatable(28f) }
-
-    LaunchedEffect(Unit) {
-        launch {
-            delay(200)
-            launch { titleSlide.animateTo(0f, tween(550, easing = EaseOutCubic)) }
-            titleAlpha.animateTo(1f, tween(550))
-        }
-        launch {
-            delay(450)
-            launch { formSlide.animateTo(0f, tween(650, easing = EaseOutCubic)) }
-            formAlpha.animateTo(1f, tween(650))
-        }
-    }
+    val titleAlpha = remember { Animatable(1f) }
+    val titleSlide = remember { Animatable(0f) }
+    val formAlpha  = remember { Animatable(1f) }
+    val formSlide  = remember { Animatable(0f) }
 
     BoxWithConstraints(
         modifier = Modifier
