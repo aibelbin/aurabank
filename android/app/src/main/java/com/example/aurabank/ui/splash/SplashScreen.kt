@@ -2,7 +2,6 @@ package com.example.aurabank.ui.splash
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
@@ -195,14 +194,20 @@ fun SplashScreen(onFinished: () -> Unit = {}) {
         onFinished()
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BG)
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+    // No background on the Box — the Canvas owns it so BlendMode.Clear can
+    // punch fully-transparent holes through to whatever is rendered beneath
+    // this composable (i.e. the LoginScreen in NavGraph).
+    Box(modifier = Modifier.fillMaxSize()) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        ) {
             val W = size.width
             val H = size.height
+
+            // Fill background inside the offscreen layer so Clear can erase it
+            drawRect(BG)
 
             // ── Phone body ──────────────────────────────────────────────────
             val phoneW  = W * 0.70f
@@ -429,12 +434,16 @@ fun SplashScreen(onFinished: () -> Unit = {}) {
             }
 
             // ── End-of-cycle burst wipe ──────────────────────────────────────
-            // Dark circle (eAOImkLDEno32): expands from cup center, color #47231F
-            // Cream circle (eAOImkLDEno33): follows to reset scene with screen color
-            // Both expand to fully cover the canvas, creating a wipe-loop transition.
-            val burstCx  = W / 2f
-            val burstCy  = H * 0.44f
-            val maxR     = sqrt(W * W + H * H) * 0.52f + W * 0.05f
+            // burst1S: dark circle expands to cover everything (the dramatic beat).
+            // burst2S: punches a transparent hole using BlendMode.Clear, growing
+            //   outward from the cup center. Because the Canvas is on an offscreen
+            //   layer (CompositingStrategy.Offscreen), Clear erases pixels back to
+            //   alpha=0, revealing the live LoginScreen composable underneath.
+            //   The hole expands until it fills the entire screen, at which point
+            //   the splash overlay is completely transparent and onFinished() is called.
+            val burstCx = W / 2f
+            val burstCy = H * 0.44f
+            val maxR    = sqrt(W * W + H * H) * 0.52f + W * 0.05f
 
             if (burst1S.value > 0f) {
                 drawCircle(
@@ -444,10 +453,12 @@ fun SplashScreen(onFinished: () -> Unit = {}) {
                 )
             }
             if (burst2S.value > 0f) {
+                // BlendMode.Clear → erases the layer to transparent, revealing LoginScreen
                 drawCircle(
-                    color = WHITE,
+                    color = Color.Black,   // color is irrelevant with Clear
                     radius = burst2S.value * maxR,
-                    center = Offset(burstCx, burstCy)
+                    center = Offset(burstCx, burstCy),
+                    blendMode = BlendMode.Clear
                 )
             }
         }
