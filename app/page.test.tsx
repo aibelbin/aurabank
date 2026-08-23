@@ -20,9 +20,8 @@ describe("landing page", () => {
     for (const line of [
       "Person A roasts Person B.",
       "Person B now owes aura.",
-      "Person A files a claim.",
-      "Naming Person B, the amount owed, and evidence of the roast.",
-      "Underwriters approve by hand.",
+      "Person A files a claim in the Aura app.",
+      "aura moves to Person A.",
     ]) {
       expect(markup).toContain(line);
     }

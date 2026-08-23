@@ -98,16 +98,20 @@ A section four viewport-heights tall. The first height pins it; the remaining th
 
 **Type explains the mechanic; the artwork is atmosphere.** An engraving at low opacity behind text can carry mood but cannot carry information — a first attempt at making the artwork more explanatory made it cluttered and no clearer, and was reverted. Real typography at real size always wins, so the words do the work:
 
-| | Headline | Explanation |
-|---|---|---|
-| `01` | Person A roasts Person B. | Two accounts. Watch their balances at the bottom of the screen. |
-| `02` | Person B now owes aura. | Owed from the moment it landed. Nothing has moved yet. |
-| `03` | Person A files a claim. | Naming Person B, the amount owed, and evidence of the roast. |
-| `04` | Person B's aura moves to Person A. | Underwriters approve by hand. Aura is never created — only transferred. |
+| | Step |
+|---|---|
+| `01` | Person A roasts Person B. |
+| `02` | Person B now owes aura. |
+| `03` | Person A files a claim in the Aura app. |
+| `04` | Person B's aura moves to Person A. |
+
+**One line per step, and nothing under it.** Each step carried a second line of explanation, and it was cut: four short statements name the actors and trace the transfer, which is the whole mechanic, and a supporting line under each turned the section back into something to read rather than watch. Step 03 absorbed the one detail worth keeping from its support line — that the claim is filed *in the app*.
+
+Consequence worth knowing: **evidence is no longer mentioned anywhere on the page.** It is part of the real mechanic (unevidenced claims are dismissed) and the story section was the only place that said so.
 
 **Named actors are what make this legible to a newcomer.** An earlier version wrote the same steps in the second person — "you roast someone", "it lands" — and it did not land, because nothing bound the words to the two anonymous figures on screen. Naming Person A and Person B, labelling the two balance gauges `A` and `B` in the artwork, and putting them on the same sides as the figures gives the reader a mapping they never have to be taught. Step 01's explanation points at the gauges explicitly, so the instrument is introduced before it starts moving.
 
-One step shows at a time, cross-faded, over a soft paper wash that keeps type crisp where it crosses the engraving.
+One step shows at a time, cross-faded, with **no panel or wash behind it**. A tinted backdrop was tried and removed: it read as a box sitting off the page background rather than type on paper. The engraving is faint enough that solid ink type reads straight through it.
 
 On phones the captions sit directly under the section header and the artwork takes the lower third; from `md` up they drop to the bottom left and share the frame with the artwork, which is wide enough to carry them. The scrub is also shorter on phones — 2.8 viewport-heights against 4 — because dragging a small picture through four screens is a long way. `scrubProgress` reads the section's real height, so the frame mapping follows automatically.
 

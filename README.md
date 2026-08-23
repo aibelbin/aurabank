@@ -153,7 +153,9 @@ The story is responsive in three ways that matter:
   full sheet, which decodes to tens of megabytes of texture. Small screens also
   cap the device pixel ratio at 1.5 and skip pointer tracking.
 - **Captions move above the artwork** and the scrub gets shorter (2.8 screens
-  against 4), so the text never lands on the figures.
+  against 4), so the text never lands on the figures. They hang from the top of
+  their box on phones and from the bottom on desktop, so larger type grows into
+  empty space instead of pushing itself down the screen.
 
 ## Design rules
 

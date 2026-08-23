@@ -12,26 +12,10 @@ import { prefersReducedMotion } from "@/lib/motion/use-reduced-motion";
  * what a reader can actually read, so the explaining happens here.
  */
 const STEPS = [
-  {
-    number: "01",
-    headline: "Person A roasts Person B.",
-    support: "Two accounts. Watch their balances at the bottom of the screen.",
-  },
-  {
-    number: "02",
-    headline: "Person B now owes aura.",
-    support: "Owed from the moment it landed. Nothing has moved yet.",
-  },
-  {
-    number: "03",
-    headline: "Person A files a claim.",
-    support: "Naming Person B, the amount owed, and evidence of the roast.",
-  },
-  {
-    number: "04",
-    headline: "Person B's aura moves to Person A.",
-    support: "Underwriters approve by hand. Aura is never created — only transferred.",
-  },
+  { number: "01", headline: "Person A roasts Person B." },
+  { number: "02", headline: "Person B now owes aura." },
+  { number: "03", headline: "Person A files a claim in the Aura app." },
+  { number: "04", headline: "Person B's aura moves to Person A." },
 ] as const;
 
 /**
@@ -116,9 +100,10 @@ export function StoryScrub() {
         </header>
 
         {scrubbing ? (
-          // One step at a time, stacked in place and cross-faded. The wash keeps
-          // type crisp where it crosses the engraving.
-          <div className="relative -mx-6 mt-6 min-h-[15em] max-w-[42ch] bg-[radial-gradient(125%_150%_at_0%_0%,var(--color-paper)_32%,transparent_80%)] px-6 sm:min-h-[12em] md:-mx-12 md:mt-auto md:min-h-[10em] md:bg-[radial-gradient(125%_150%_at_0%_100%,var(--color-paper)_32%,transparent_80%)] md:px-12">
+          // One step at a time, stacked in place and cross-faded. No panel and no
+          // wash behind it — the type sits directly on the paper and the
+          // engraving, which is faint enough to read through.
+          <div className="relative mt-6 min-h-[8em] max-w-[42ch] sm:min-h-[7em] md:mt-auto md:min-h-[9em]">
             {STEPS.map((entry, index) => (
               <div
                 key={entry.number}
@@ -126,17 +111,14 @@ export function StoryScrub() {
                 data-active={index === step ? "true" : "false"}
                 aria-hidden={index === step ? undefined : "true"}
                 className={cn(
-                  "absolute inset-x-6 top-0 transition-opacity duration-500",
-                  "md:inset-x-12 md:top-auto md:bottom-0",
+                  "absolute inset-x-0 top-0 transition-opacity duration-500",
+                  "md:top-auto md:bottom-0",
                   index === step ? "opacity-100" : "opacity-0",
                 )}
               >
                 <MonoLabel muted>{entry.number}</MonoLabel>
                 <p className="mt-4 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.04] font-semibold tracking-[-0.03em]">
                   {entry.headline}
-                </p>
-                <p className="mt-4 max-w-[44ch] text-lg leading-[1.5] text-ink/70">
-                  {entry.support}
                 </p>
               </div>
             ))}
@@ -146,10 +128,7 @@ export function StoryScrub() {
             {STEPS.map((entry) => (
               <li key={entry.number} data-caption className="flex gap-5">
                 <MonoLabel muted>{entry.number}</MonoLabel>
-                <div>
-                  <p className="text-2xl leading-[1.2] font-semibold">{entry.headline}</p>
-                  <p className="mt-2 text-lg leading-[1.5] text-ink/70">{entry.support}</p>
-                </div>
+                <p className="text-2xl leading-[1.2] font-semibold">{entry.headline}</p>
               </li>
             ))}
           </ol>

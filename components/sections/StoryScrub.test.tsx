@@ -53,9 +53,9 @@ describe("StoryScrub", () => {
     const markup = renderToStaticMarkup(<StoryScrub />);
     // Named actors are what make the mechanic legible to a newcomer.
     expect(markup).toContain("Person A roasts Person B.");
-    expect(markup).toContain("Person A files a claim.");
+    expect(markup).toContain("Person B now owes aura.");
+    expect(markup).toContain("Person A files a claim in the Aura app.");
     expect(markup).toContain("Person B&#x27;s aura moves to Person A.");
-    expect(markup).toContain("Naming Person B, the amount owed, and evidence of the roast.");
     // No scroll readout without JavaScript — it would be meaningless.
     expect(markup).not.toContain("Tape");
   });
@@ -121,12 +121,18 @@ describe("StoryScrub", () => {
     expect(pinned?.className).toContain("pb-[12svh]");
   });
 
-  it("shows the first step, headline and explanation, at the start", () => {
+  it("shows the first step at the start", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
     expect(activeStep(container)?.textContent).toContain("Person A roasts Person B.");
-    // Step one also points the reader at the balance gauges in the artwork.
-    expect(activeStep(container)?.textContent).toContain("Watch their balances");
+  });
+
+  it("carries no panel or wash behind the type", () => {
+    positionSection({ top: 0, height: 4000 });
+    const { container } = render(<StoryScrub />);
+    const box = container.querySelector('[data-caption]')?.parentElement;
+    // A tinted backdrop reads as a box sitting off the page background.
+    expect(box?.className).not.toContain("bg-");
   });
 
   it("advances the step as the section scrolls past", () => {
@@ -138,8 +144,7 @@ describe("StoryScrub", () => {
       window.dispatchEvent(new Event("scroll"));
     });
 
-    expect(activeStep(container)?.textContent).toContain("Person A files a claim.");
-    expect(activeStep(container)?.textContent).toContain("evidence of the roast");
+    expect(activeStep(container)?.textContent).toContain("Person A files a claim in the Aura app.");
   });
 
   it("reaches the final step at the end of the story", () => {
