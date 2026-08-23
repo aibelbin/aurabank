@@ -72,8 +72,6 @@ Everything runs in house. At runtime the page makes **zero external network requ
 - **Split-character headlines.** Headline text is exploded into line → word → char. Each char carries its own CSS custom properties and rises out of a clip mask on a stagger, triggered by IntersectionObserver.
 - **The story, engraved.** While the story section is on screen, the current frame of the toon is sampled from a sprite atlas and fed into the same field. Dark artwork lays down a fourth, much finer plate inside the silhouette — that density is what makes the figure read as an engraved portrait rather than a pasted-on cartoon. The plate cross-fades in and out at the section's edges so it never appears behind the hero or the disclosure copy.
 - **Scroll drives the story, not time.** The frame index is a pure function of scroll position, so scrolling up runs the story backwards at no extra cost. The displayed frame eases toward the target to give the scrub weight.
-- **The frame is a camera, not a stage.** Each frame is a window onto a world three frames wide — street, kiosk, bank interior — and the camera follows the protagonist, who walks between locations. Scrolling therefore travels through a scene rather than watching a fixed tableau, and every pan is motivated by someone moving.
-- **The plate fades up on first paint** rather than snapping in, so the engraving resolves into the page instead of appearing behind it.
 - **Hairline rules** draw left-to-right on entry.
 - **Aura figures** count up when scrolled into view.
 - **`prefers-reduced-motion`:** canvas renders a single static frame; all stagger, draw-on, and count-up animations are replaced by their final state. No motion at all.
@@ -90,14 +88,12 @@ Four beats. The mantra **"You roast. We verify. The aura moves."** closes the pa
 Mono label: `ESTABLISHED 2026`. Scroll cue below the fold.
 
 ### 02 — How settlement works (the story)
-A section four viewport-heights tall. The first height pins it; the remaining three scrub the toon. Six captions, one at a time, cross-faded, over a soft paper wash so type stays crisp where it crosses the engraving:
+A section four viewport-heights tall. The first height pins it; the remaining three scrub the toon. Four captions, one at a time, cross-faded:
 
 > `01` You roast someone.
 > `02` It lands.
-> `03` You file a claim.
-> `04` Evidence attached.
-> `05` Underwriters review.
-> `06` Settlement clears.
+> `03` You file the claim. Evidence attached.
+> `04` Settlement clears. The aura moves.
 
 A mono readout reports the tape position (`TAPE 042 / 96`), which is how the reader understands the scroll is driving something.
 
@@ -190,20 +186,7 @@ SQLite file at `data/waitlist.db`. One table:
 
 ## 7a. The story atlas
 
-96 frames — 8 seconds on twos, the traditional cartoon cadence — drawn at 480×270 and packed into one 8×12 greyscale PNG (3840×3240, ~238 KB). Greyscale because the shader reads luminance only.
-
-**Six acts of sixteen frames**, staged across a world three frames wide:
-
-| Act | Location | What happens |
-|---|---|---|
-| 01 | Street | The roast leaves the mouth and crosses to the victim |
-| 02 | Street | It lands; the victim folds |
-| 03 | Kiosk | The protagonist walks over and files a claim |
-| 04 | Kiosk | Evidence sheets slide in and stack |
-| 05 | Bank counter | An underwriter stamps it, by hand |
-| 06 | Bank counter | The aura crosses the counter; the ledger moves |
-
-Acts that change location spend their first third walking, with the camera following and a gait animating, so no act ever opens on an empty frame. The two balance bars are drawn in frame space rather than world space — the ledger is an instrument panel and stays pinned while the world pans behind it.
+96 frames — 8 seconds on twos, the traditional cartoon cadence — drawn at 480×270 and packed into one 8×12 greyscale PNG (3840×3240, ~290 KB). Greyscale because the shader reads luminance only.
 
 Why an atlas rather than a video file: scrubbing a video means setting `currentTime`, which forces a decode-and-seek. Normal h264 carries keyframes seconds apart, so arbitrary seeks stutter, and reverse is far worse — the decoder must walk back to the previous keyframe and re-decode forward every time. Selecting an atlas cell is a texture lookup: no decode, no seek, and backwards costs exactly what forwards costs. Flat cartoon artwork also compresses far better as PNG than an all-keyframe video would (~290 KB against several MB).
 
@@ -236,7 +219,7 @@ Frames pack left-to-right, top-to-bottom. If the geometry changes, the generator
 ## 10. Performance budget
 
 - Initial JS: **176 KB gzipped, measured**. The original 120 KB target was set before the framework floor was known — Next 16 with React 19 accounts for the bulk of it, and the page's own code is a minority share. Revised rather than pretended.
-- Story atlas: 238 KB, fetched once, cached, and never blocking first paint.
+- Story atlas: 290 KB, fetched once, cached, and never blocking first paint.
 - LCP < 1.8s on a throttled 4G connection.
 - 60fps desktop; 30fps floor on a mid-range phone, enforced by resolution scaling.
 - No web fonts blocking first paint; fallback stack declared for every face.
