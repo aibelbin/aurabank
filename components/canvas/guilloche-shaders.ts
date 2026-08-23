@@ -78,8 +78,12 @@ void main() {
   float derivative = length(vec2(dFdx(wave), dFdy(wave))) + 1e-5;
   float line = 1.0 - smoothstep(derivative, derivative * 2.0, distanceToLine);
 
-  // Vignette so type always sits on clean paper.
-  float vignette = 1.0 - smoothstep(0.55, 1.5, length(uv));
+  // Vignette so type always sits on clean paper. Measured in viewport-normalised
+  // coordinates (-1..1 on both axes) rather than in uv, which is scaled by
+  // aspect — an aspect-blind vignette eats the edges of the artwork, including
+  // the labelled balance gauges along the bottom.
+  vec2 normalised = (gl_FragCoord.xy * 2.0 - uResolution) / uResolution;
+  float vignette = 1.0 - smoothstep(0.85, 1.55, length(normalised));
 
   float ambient = line * vignette * uOpacity;
   // The figure's own lines carry more weight, plus a faint wash so the shape

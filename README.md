@@ -52,6 +52,13 @@ into the guilloché line field. Scrubbing a video file would mean seeking on
 every frame, which stutters forwards and is far worse backwards; picking an
 atlas cell costs the same in either direction.
 
+The captions name **Person A and Person B**, and the two balance gauges in the
+artwork are labelled `A` and `B` on the same sides the figures stand on — so the
+words and the picture refer to the same people without anything having to
+explain the mapping. Writing the steps in the second person ("you roast
+someone") was tried first and did not read: nothing tied the text to the two
+anonymous figures on screen.
+
 While the story runs, the viewport holds the artwork, the current step, and
 nothing else. The artwork's two **balance gauges** are the only instrumentation —
 they show aura leaving one account and arriving in another — so the section

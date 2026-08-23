@@ -24,7 +24,7 @@ export function Hero() {
             The central bank of aura.
           </p>
           <p className="max-w-[34ch] font-mono text-sm leading-relaxed text-ink/60 md:justify-self-end">
-            Aura is not created. It is transferred.
+            Aura Mukhyam
           </p>
         </div>
       </div>

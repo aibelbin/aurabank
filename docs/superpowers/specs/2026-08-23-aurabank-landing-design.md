@@ -96,16 +96,18 @@ A section four viewport-heights tall. The first height pins it; the remaining th
 
 | | Headline | Explanation |
 |---|---|---|
-| `01` | You roast someone. | Aura is owed from that moment. The paperwork comes later. |
-| `02` | It lands. | The debt exists whether or not anyone admits it. |
-| `03` | You file a claim. | State the amount you are owed. Attach the evidence. |
-| `04` | Settlement clears. | Underwriters approve by hand. Their balance debits. Yours credits. |
+| `01` | Person A roasts Person B. | Two accounts. Watch their balances at the bottom of the screen. |
+| `02` | Person B now owes aura. | Owed from the moment it landed. Nothing has moved yet. |
+| `03` | Person A files a claim. | Naming Person B, the amount owed, and evidence of the roast. |
+| `04` | Person B's aura moves to Person A. | Underwriters approve by hand. Aura is never created — only transferred. |
+
+**Named actors are what make this legible to a newcomer.** An earlier version wrote the same steps in the second person — "you roast someone", "it lands" — and it did not land, because nothing bound the words to the two anonymous figures on screen. Naming Person A and Person B, labelling the two balance gauges `A` and `B` in the artwork, and putting them on the same sides as the figures gives the reader a mapping they never have to be taught. Step 01's explanation points at the gauges explicitly, so the instrument is introduced before it starts moving.
 
 One step shows at a time, cross-faded, over a soft paper wash that keeps type crisp where it crosses the engraving.
 
 **Nothing else is on screen while the story runs.** A step rail and a tape-position readout were both tried and removed: they collided with the artwork's balance bars and split attention three ways. During the scrub the viewport holds the artwork, the current step, and nothing more.
 
-The **balance bars drawn into the artwork are the only instrumentation**, and they carry the information that matters — aura leaving one account and arriving in another. They are drawn as outlined gauges rather than plain bars, because a near-white track disappears once engraved, and the pinned band at the bottom of the section reserves clear space for them so no DOM element ever sits on top of the ledger.
+The **balance gauges drawn into the artwork are the only instrumentation**, and they carry the information that matters — aura leaving one account and arriving in another. They are outlined rather than plain bars, because a near-white track disappears once engraved, and each is labelled with its account (`A` left, `B` right) in drawn stencil letterforms, since the rasteriser has no font. The pinned band at the bottom of the section reserves clear space for them so no DOM element ever sits on top of the ledger.
 
 Without JavaScript, or under reduced motion, every step renders as a plain numbered list with its explanation — the most informative state of the page, readable with no scrolling at all.
 

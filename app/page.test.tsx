@@ -13,17 +13,16 @@ describe("landing page", () => {
   it("leads with the institution and its promise", () => {
     expect(markup).toContain("AURABANK");
     expect(markup).toContain("The central bank of aura.");
-    expect(markup).toContain("Aura is not created. It is transferred.");
+    expect(markup).toContain("Aura Mukhyam");
   });
 
   it("explains the mechanic in the story captions, readable without JavaScript", () => {
     for (const line of [
-      "You roast someone.",
-      "It lands.",
-      "You file a claim.",
-      "Settlement clears.",
-      "State the amount you are owed. Attach the evidence.",
-      "Underwriters approve by hand. Their balance debits. Yours credits.",
+      "Person A roasts Person B.",
+      "Person B now owes aura.",
+      "Person A files a claim.",
+      "Naming Person B, the amount owed, and evidence of the roast.",
+      "Underwriters approve by hand.",
     ]) {
       expect(markup).toContain(line);
     }

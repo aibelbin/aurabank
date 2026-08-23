@@ -51,11 +51,11 @@ afterEach(() => {
 describe("StoryScrub", () => {
   it("exposes the whole mechanic as a plain list in server markup", () => {
     const markup = renderToStaticMarkup(<StoryScrub />);
-    expect(markup).toContain("You roast someone.");
-    expect(markup).toContain("Settlement clears.");
-    // The supporting lines are where the mechanic is actually explained.
-    expect(markup).toContain("State the amount you are owed. Attach the evidence.");
-    expect(markup).toContain("Underwriters approve by hand. Their balance debits. Yours credits.");
+    // Named actors are what make the mechanic legible to a newcomer.
+    expect(markup).toContain("Person A roasts Person B.");
+    expect(markup).toContain("Person A files a claim.");
+    expect(markup).toContain("Person B&#x27;s aura moves to Person A.");
+    expect(markup).toContain("Naming Person B, the amount owed, and evidence of the roast.");
     // No scroll readout without JavaScript — it would be meaningless.
     expect(markup).not.toContain("Tape");
   });
@@ -101,8 +101,9 @@ describe("StoryScrub", () => {
   it("shows the first step, headline and explanation, at the start", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
-    expect(activeStep(container)?.textContent).toContain("You roast someone.");
-    expect(activeStep(container)?.textContent).toContain("Aura is owed from that moment.");
+    expect(activeStep(container)?.textContent).toContain("Person A roasts Person B.");
+    // Step one also points the reader at the balance gauges in the artwork.
+    expect(activeStep(container)?.textContent).toContain("Watch their balances");
   });
 
   it("advances the step as the section scrolls past", () => {
@@ -114,8 +115,8 @@ describe("StoryScrub", () => {
       window.dispatchEvent(new Event("scroll"));
     });
 
-    expect(activeStep(container)?.textContent).toContain("You file a claim.");
-    expect(activeStep(container)?.textContent).toContain("Attach the evidence.");
+    expect(activeStep(container)?.textContent).toContain("Person A files a claim.");
+    expect(activeStep(container)?.textContent).toContain("evidence of the roast");
   });
 
   it("reaches the final step at the end of the story", () => {
@@ -124,7 +125,7 @@ describe("StoryScrub", () => {
     act(() => {
       window.dispatchEvent(new Event("scroll"));
     });
-    expect(activeStep(container)?.textContent).toContain("Settlement clears.");
+    expect(activeStep(container)?.textContent).toContain("Person B's aura moves to Person A.");
   });
 
   it("hides only the inactive steps from assistive technology", () => {

@@ -60,6 +60,36 @@ function drawGround(surface) {
 }
 
 /**
+ * "A" and "B", drawn as strokes because the rasteriser has no font. They label
+ * the two accounts so the captions and the picture refer to the same people —
+ * without them the figures are anonymous and nothing binds words to artwork.
+ */
+function glyphA(surface, cx, baseY, size, ink) {
+  const width = size * 0.74;
+  const weight = size * 0.26;
+  stroke(surface, cx - width / 2, baseY, cx, baseY - size, weight, ink);
+  stroke(surface, cx + width / 2, baseY, cx, baseY - size, weight, ink);
+  fillRect(surface, cx - width * 0.31, baseY - size * 0.34, width * 0.62, weight, ink);
+}
+
+function glyphB(surface, cx, baseY, size, ink) {
+  const width = size * 0.78;
+  const spine = size * 0.24;
+  const wall = size * 0.16;
+  const left = cx - width / 2;
+  const top = baseY - size;
+
+  // A solid block with its two counters punched out. Assembling the letter from
+  // bars merges them into a filled rectangle at this size; a stencil reads. The
+  // counters are wider than they are tall, or the letter reads as an 8.
+  fillRect(surface, left, top, width, size, ink);
+  const holeWidth = width - spine - wall;
+  const holeHeight = size * 0.245;
+  fillRect(surface, left + spine, top + size * 0.13, holeWidth, holeHeight, PAPER);
+  fillRect(surface, left + spine, top + size * 0.605, holeWidth, holeHeight, PAPER);
+}
+
+/**
  * Two balance bars: the ledger, and the only instrument on screen while the
  * story runs. Outlined so it reads as a gauge — a fill against a total — rather
  * than a floating bar, since a near-white track vanishes once engraved.
@@ -78,8 +108,13 @@ function drawBalances(surface, roaster, victim) {
     fillRect(surface, x + 2, y + 2, (width - 4) * clamp01(fraction), height - 4, INK);
   };
 
-  gauge(40, roaster);
-  gauge(FRAME_WIDTH - 40 - width, victim);
+  gauge(56, roaster);
+  gauge(FRAME_WIDTH - 56 - width, victim);
+
+  // Person A holds the left account, Person B the right — the same sides the
+  // two figures stand on, so the mapping needs no explaining.
+  glyphA(surface, 32, y + height, 22, INK);
+  glyphB(surface, FRAME_WIDTH - 32, y + height, 22, INK);
 }
 
 /** Expanding rings: the roast travelling across the frame. */

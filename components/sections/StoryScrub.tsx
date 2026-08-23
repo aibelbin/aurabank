@@ -17,23 +17,23 @@ const SCREENS = 4;
 const STEPS = [
   {
     number: "01",
-    headline: "You roast someone.",
-    support: "Aura is owed from that moment. The paperwork comes later.",
+    headline: "Person A roasts Person B.",
+    support: "Two accounts. Watch their balances at the bottom of the screen.",
   },
   {
     number: "02",
-    headline: "It lands.",
-    support: "The debt exists whether or not anyone admits it.",
+    headline: "Person B now owes aura.",
+    support: "Owed from the moment it landed. Nothing has moved yet.",
   },
   {
     number: "03",
-    headline: "You file a claim.",
-    support: "State the amount you are owed. Attach the evidence.",
+    headline: "Person A files a claim.",
+    support: "Naming Person B, the amount owed, and evidence of the roast.",
   },
   {
     number: "04",
-    headline: "Settlement clears.",
-    support: "Underwriters approve by hand. Their balance debits. Yours credits.",
+    headline: "Person B's aura moves to Person A.",
+    support: "Underwriters approve by hand. Aura is never created — only transferred.",
   },
 ] as const;
 
