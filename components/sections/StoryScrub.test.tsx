@@ -66,10 +66,23 @@ describe("StoryScrub", () => {
     expect(container.querySelector("[data-story-scrub]")).not.toBeNull();
   });
 
-  it("reserves several viewport-heights of scroll distance", () => {
+  it("reserves several viewport-heights of scroll distance, fewer on phones", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
-    expect(container.querySelector<HTMLElement>("#story")?.style.height).toBe("400svh");
+    const section = container.querySelector<HTMLElement>("#story");
+    // Shorter by default, taller from md up — dragging a small picture four
+    // screens is a long way on a phone.
+    expect(section?.className).toContain("h-[280svh]");
+    expect(section?.className).toContain("md:h-[400svh]");
+  });
+
+  it("puts the captions above the artwork on phones and beside it on desktop", () => {
+    positionSection({ top: 0, height: 4000 });
+    const { container } = render(<StoryScrub />);
+    const captions = container.querySelector('[data-caption]')?.parentElement;
+    // mt-10 sits them under the header; md:mt-auto drops them to the bottom.
+    expect(captions?.className).toContain("mt-10");
+    expect(captions?.className).toContain("md:mt-auto");
   });
 
   it("switches to the one-step-at-a-time presentation once mounted", () => {

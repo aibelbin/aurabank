@@ -5,9 +5,17 @@ import { cn } from "@/lib/cn";
 import { FRAGMENT_SHADER, VERTEX_SHADER } from "./guilloche-shaders";
 import { prefersReducedMotion } from "@/lib/motion/use-reduced-motion";
 import { STORY_ATLAS } from "@/lib/story/atlas";
-import { frameForProgress, scrubProgress, storyOffset, storyScale } from "@/lib/story/scrub";
+import {
+  frameForProgress,
+  scrubProgress,
+  storyOffset,
+  storyScale,
+  storyZoom,
+} from "@/lib/story/scrub";
 
 const MAX_PIXEL_RATIO = 2;
+/** Phones pay for every fragment; the plate is a watermark, not a photograph. */
+const MAX_PIXEL_RATIO_SMALL = 1.5;
 const INK_OPACITY = 0.09;
 /** Frame budget before the render resolution is stepped down. */
 const SLOW_FRAME_MS = 22;
@@ -17,6 +25,11 @@ const SCRUB_EASING = 0.18;
 const STILL_FRAME = 82;
 
 const FRAME_ASPECT = STORY_ATLAS.frameWidth / STORY_ATLAS.frameHeight;
+
+const matches = (query: string) =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia(query).matches;
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string) {
   const shader = gl.createShader(type);
@@ -109,6 +122,13 @@ export function GuillocheField() {
     gl.uniform1i(uniforms.story, 0);
     gl.uniform2f(uniforms.storyGrid, STORY_ATLAS.columns, STORY_ATLAS.rows);
 
+    const reduced = prefersReducedMotion();
+    const smallScreen = matches("(max-width: 768px)");
+    // Touch devices only report pointermove mid-drag, so tracking it buys
+    // nothing and costs a listener on every scroll frame.
+    const trackPointer = !matches("(pointer: coarse)");
+    const pixelRatioCap = smallScreen ? MAX_PIXEL_RATIO_SMALL : MAX_PIXEL_RATIO;
+
     // A 1x1 white texture stands in until the atlas arrives, so the first
     // frames render ambient-only instead of sampling undefined memory.
     const texture = gl.createTexture();
@@ -145,9 +165,10 @@ export function GuillocheField() {
       // The page still works; it simply never shows the toon.
       console.error("[guilloche] story atlas failed to load");
     };
-    atlas.src = STORY_ATLAS.src;
+    // The shader addresses cells in normalised coordinates, so a smaller sheet
+    // is a straight saving: 1920x1620 instead of 3840x3240 to decode and hold.
+    atlas.src = smallScreen ? STORY_ATLAS.srcSmall : STORY_ATLAS.src;
 
-    const reduced = prefersReducedMotion();
     let resolutionScale = 1;
     let frame = 0;
     let running = true;
@@ -165,11 +186,14 @@ export function GuillocheField() {
     }
 
     function resize() {
-      const ratio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO) * resolutionScale;
+      const ratio = Math.min(window.devicePixelRatio || 1, pixelRatioCap) * resolutionScale;
       const width = Math.max(1, Math.floor(window.innerWidth * ratio));
       const height = Math.max(1, Math.floor(window.innerHeight * ratio));
-      const [scaleX, scaleY] = storyScale(width, height, FRAME_ASPECT);
-      const [offsetX, offsetY] = storyOffset(width, height, FRAME_ASPECT);
+      // Enlarge and crop on portrait rather than leaving a thin strip. Every
+      // input here is a ratio, so device pixels and CSS pixels agree.
+      const zoom = storyZoom(width, height, FRAME_ASPECT);
+      const [scaleX, scaleY] = storyScale(width, height, FRAME_ASPECT, zoom);
+      const [offsetX, offsetY] = storyOffset(width, height, FRAME_ASPECT, zoom);
       gl!.uniform2f(uniforms.storyScale, scaleX, scaleY);
       gl!.uniform2f(uniforms.storyOffset, offsetX, offsetY);
 
@@ -283,7 +307,7 @@ export function GuillocheField() {
       draw(0);
       atlas.addEventListener("load", () => draw(0));
     } else {
-      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      if (trackPointer) window.addEventListener("pointermove", onPointerMove, { passive: true });
       document.addEventListener("visibilitychange", onVisibilityChange);
       frame = requestAnimationFrame(loop);
     }

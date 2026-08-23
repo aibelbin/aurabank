@@ -21,6 +21,28 @@ for (let index = 0; index < FRAME_COUNT; index += 1) {
 const png = encodeGrayPng(atlas.width, atlas.height, atlas.pixels);
 writeFileSync("public/story/story-atlas.png", png);
 
+/**
+ * Half-resolution copy for small screens. The full sheet is 3840x3240, which a
+ * browser decodes to tens of megabytes of texture — a real cost on a phone,
+ * where the artwork is a fraction of the screen anyway. The shader addresses
+ * cells in normalised coordinates, so it neither knows nor cares which it gets.
+ */
+const half = createSurface(atlas.width / 2, atlas.height / 2, 245);
+for (let y = 0; y < half.height; y += 1) {
+  for (let x = 0; x < half.width; x += 1) {
+    const topLeft = y * 2 * atlas.width + x * 2;
+    half.pixels[y * half.width + x] = Math.round(
+      (atlas.pixels[topLeft] +
+        atlas.pixels[topLeft + 1] +
+        atlas.pixels[topLeft + atlas.width] +
+        atlas.pixels[topLeft + atlas.width + 1]) /
+        4,
+    );
+  }
+}
+const halfPng = encodeGrayPng(half.width, half.height, half.pixels);
+writeFileSync("public/story/story-atlas-half.png", halfPng);
+
 writeFileSync(
   "lib/story/atlas.ts",
   `/**
@@ -31,6 +53,8 @@ writeFileSync(
  */
 export const STORY_ATLAS = {
   src: "/story/story-atlas.png",
+  /** Half-resolution sheet, for small screens. Same grid, same frame count. */
+  srcSmall: "/story/story-atlas-half.png",
   columns: ${COLUMNS},
   rows: ${ROWS},
   frameCount: ${FRAME_COUNT},
@@ -41,5 +65,6 @@ export const STORY_ATLAS = {
 );
 
 console.log(
-  `atlas: ${atlas.width}x${atlas.height}, ${FRAME_COUNT} frames, ${(png.length / 1024).toFixed(0)} KB`,
+  `atlas: ${atlas.width}x${atlas.height}, ${FRAME_COUNT} frames, ${(png.length / 1024).toFixed(0)} KB\n` +
+    `half:  ${half.width}x${half.height}, ${(halfPng.length / 1024).toFixed(0)} KB`,
 );

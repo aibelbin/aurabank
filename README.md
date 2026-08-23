@@ -139,6 +139,21 @@ lib/
 scripts/                    the story generator — PNG encoder, rasteriser, toon
 ```
 
+## On phones
+
+The story is responsive in three ways that matter:
+
+- **The artwork is enlarged and cropped** rather than contain-fitted. A 16:9
+  frame contain-fitted into a portrait phone is a strip about a quarter of the
+  screen tall; portrait scales it up (capped at 1.35×) and crops the mostly
+  empty top. The cap is why the ledger is drawn well inside the frame's width —
+  push it outward and the horizontal crop eats the account labels.
+- **Phones fetch `story-atlas-half.png`** (1920×1620, 133 KB) instead of the
+  full sheet, which decodes to tens of megabytes of texture. Small screens also
+  cap the device pixel ratio at 1.5 and skip pointer tracking.
+- **Captions move above the artwork** and the scrub gets shorter (2.8 screens
+  against 4), so the text never lands on the figures.
+
 ## Design rules
 
 - **Ink on paper.** No dark mode — this is printed stationery.

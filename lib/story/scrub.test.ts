@@ -5,6 +5,7 @@ import {
   scrubProgress,
   storyOffset,
   storyScale,
+  storyZoom,
 } from "./scrub";
 
 describe("scrubProgress", () => {
@@ -141,5 +142,70 @@ describe("storyOffset", () => {
 
   it("degrades safely on a zero-sized viewport", () => {
     expect(storyOffset(0, 0, FRAME_ASPECT)).toEqual([0.5, 0.5]);
+  });
+});
+
+describe("storyZoom", () => {
+  const FRAME_ASPECT = 480 / 270;
+
+  it("leaves landscape viewports alone, where the frame already fills the height", () => {
+    expect(storyZoom(1600, 900, FRAME_ASPECT)).toBe(1);
+    expect(storyZoom(2400, 900, FRAME_ASPECT)).toBe(1);
+  });
+
+  it("enlarges the artwork on a portrait phone, which a contain fit leaves as a strip", () => {
+    // 390x844 contain-fits to about a quarter of the screen height.
+    const containFraction = 390 / FRAME_ASPECT / 844;
+    expect(containFraction).toBeLessThan(0.3);
+    expect(storyZoom(390, 844, FRAME_ASPECT)).toBeGreaterThan(1.3);
+  });
+
+  it("is capped, so the horizontal crop can never eat the account labels", () => {
+    expect(storyZoom(320, 1200, FRAME_ASPECT)).toBeLessThanOrEqual(1.35);
+  });
+
+  it("leaves a tablet in portrait alone, where the strip is already tall enough", () => {
+    expect(storyZoom(768, 1024, FRAME_ASPECT)).toBe(1);
+  });
+
+  it("keeps the ledger inside the crop at maximum zoom", () => {
+    // Ledger extent in frame pixels, from scripts/lib/story-frames.mjs:
+    // the "A" glyph starts at ~68 and the "B" glyph ends at ~413 of 480.
+    const maxZoom = 1.35;
+    const visible = 480 / maxZoom;
+    const cropLeft = (480 - visible) / 2;
+    const cropRight = cropLeft + visible;
+
+    expect(cropLeft).toBeLessThan(68);
+    expect(cropRight).toBeGreaterThan(413);
+  });
+
+  it("actually makes the artwork bigger on screen, not smaller", () => {
+    // The shader maps p = uv * scale * 0.5 + offset, so a larger scale means a
+    // SMALLER on-screen frame. Guards against inverting the zoom.
+    const heightFraction = (width: number, height: number, zoom: number) => {
+      const [, scaleY] = storyScale(width, height, FRAME_ASPECT, zoom);
+      const uvSpan = (2 * height) / Math.min(width, height);
+      return 1 / (scaleY * 0.5) / uvSpan;
+    };
+
+    const contained = heightFraction(390, 844, 1);
+    const zoomed = heightFraction(390, 844, storyZoom(390, 844, FRAME_ASPECT));
+
+    expect(contained).toBeLessThan(0.3);
+    expect(zoomed).toBeGreaterThan(contained);
+    expect(zoomed).toBeGreaterThan(0.33);
+  });
+
+  it("still anchors the enlarged artwork to the bottom of the viewport", () => {
+    const zoom = storyZoom(390, 844, FRAME_ASPECT);
+    const [, scaleY] = storyScale(390, 844, FRAME_ASPECT, zoom);
+    const [, offsetY] = storyOffset(390, 844, FRAME_ASPECT, zoom);
+    const uvAtBottom = -844 / Math.min(390, 844);
+    expect(uvAtBottom * scaleY * 0.5 + offsetY).toBeCloseTo(0);
+  });
+
+  it("degrades safely on a zero-sized viewport", () => {
+    expect(storyZoom(0, 0, FRAME_ASPECT)).toBe(1);
   });
 });

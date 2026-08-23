@@ -7,9 +7,6 @@ import { Rule } from "@/components/ui/Rule";
 import { captionForProgress, scrubProgress } from "@/lib/story/scrub";
 import { prefersReducedMotion } from "@/lib/motion/use-reduced-motion";
 
-/** Viewport-heights of scroll. The first is spent pinning; the rest scrubs. */
-const SCREENS = 4;
-
 /**
  * The mechanic, in words. The engraving behind these is atmosphere — type is
  * what a reader can actually read, so the explaining happens here.
@@ -89,8 +86,11 @@ export function StoryScrub() {
       id="story"
       ref={sectionRef}
       data-story-scrub
-      className="relative"
-      style={{ height: `${SCREENS * 100}svh` }}
+      // Viewport-heights of scroll: the first is spent pinning, the rest scrubs.
+      // Shorter on phones, where four screens of scrolling is a long way to
+      // drag a small picture. scrubProgress reads the real height, so the
+      // mapping follows automatically.
+      className="relative h-[280svh] md:h-[400svh]"
     >
       <Rule />
       {/*
@@ -98,9 +98,15 @@ export function StoryScrub() {
         artwork draws the two balance bars, so nothing in the DOM sits on top
         of the ledger while the story is running.
       */}
+      {/*
+        On phones the captions sit directly under the header and the artwork
+        takes the lower half of the screen — at that width they would otherwise
+        land on top of the figures. From md up they drop to the bottom left and
+        share the frame with the artwork, which is wide enough to carry them.
+      */}
       <div
         className={cn(
-          "sticky top-0 flex h-[100svh] flex-col justify-between px-6 pt-10 md:px-12 md:pt-12",
+          "sticky top-0 flex h-[100svh] flex-col px-6 pt-10 md:px-12 md:pt-12",
           scrubbing ? "pb-[12svh] md:pb-[11svh]" : "pb-12",
         )}
       >
@@ -112,7 +118,7 @@ export function StoryScrub() {
         {scrubbing ? (
           // One step at a time, stacked in place and cross-faded. The wash keeps
           // type crisp where it crosses the engraving.
-          <div className="relative -mx-6 min-h-[13em] max-w-[42ch] bg-[radial-gradient(125%_150%_at_0%_100%,var(--color-paper)_32%,transparent_80%)] px-6 sm:min-h-[11em] md:-mx-12 md:min-h-[10em] md:px-12">
+          <div className="relative -mx-6 mt-10 min-h-[13em] max-w-[42ch] bg-[radial-gradient(125%_150%_at_0%_100%,var(--color-paper)_32%,transparent_80%)] px-6 sm:min-h-[11em] md:-mx-12 md:mt-auto md:min-h-[10em] md:px-12">
             {STEPS.map((entry, index) => (
               <div
                 key={entry.number}
@@ -135,7 +141,7 @@ export function StoryScrub() {
             ))}
           </div>
         ) : (
-          <ol className="max-w-[52ch] space-y-8">
+          <ol className="mt-10 max-w-[52ch] space-y-8 md:mt-auto">
             {STEPS.map((entry) => (
               <li key={entry.number} data-caption className="flex gap-5">
                 <MonoLabel muted>{entry.number}</MonoLabel>

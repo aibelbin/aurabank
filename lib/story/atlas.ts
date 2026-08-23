@@ -6,6 +6,8 @@
  */
 export const STORY_ATLAS = {
   src: "/story/story-atlas.png",
+  /** Half-resolution sheet, for small screens. Same grid, same frame count. */
+  srcSmall: "/story/story-atlas-half.png",
   columns: 8,
   rows: 12,
   frameCount: 96,

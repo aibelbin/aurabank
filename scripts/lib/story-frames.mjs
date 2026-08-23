@@ -90,17 +90,19 @@ function glyphB(surface, cx, baseY, size, ink) {
 }
 
 /**
- * Two balance bars: the ledger, and the only instrument on screen while the
- * story runs. Outlined so it reads as a gauge — a fill against a total — rather
- * than a floating bar, since a near-white track vanishes once engraved.
+ * Two balance gauges: the ledger, and the only instrument on screen while the
+ * story runs. Outlined so each reads as a fill against a total rather than a
+ * floating bar, since a near-white track disappears once engraved.
  *
- * Drawn along the frame's bottom edge, which the shader anchors to the bottom
- * of the viewport at every aspect ratio.
+ * Kept well inside the frame's width on purpose. Portrait viewports enlarge the
+ * artwork and crop it horizontally, and anything out near the edges would be
+ * the first thing lost — including the account labels.
  */
 function drawBalances(surface, roaster, victim) {
-  const width = 138;
+  const width = 118;
   const height = 14;
   const y = 246;
+  const inset = 94;
 
   const gauge = (x, fraction) => {
     fillRect(surface, x, y, width, height, MID);
@@ -108,13 +110,13 @@ function drawBalances(surface, roaster, victim) {
     fillRect(surface, x + 2, y + 2, (width - 4) * clamp01(fraction), height - 4, INK);
   };
 
-  gauge(56, roaster);
-  gauge(FRAME_WIDTH - 56 - width, victim);
+  gauge(inset, roaster);
+  gauge(FRAME_WIDTH - inset - width, victim);
 
   // Person A holds the left account, Person B the right — the same sides the
   // two figures stand on, so the mapping needs no explaining.
-  glyphA(surface, 32, y + height, 22, INK);
-  glyphB(surface, FRAME_WIDTH - 32, y + height, 22, INK);
+  glyphA(surface, inset - 18, y + height, 22, INK);
+  glyphB(surface, FRAME_WIDTH - inset + 18, y + height, 22, INK);
 }
 
 /** Expanding rings: the roast travelling across the frame. */

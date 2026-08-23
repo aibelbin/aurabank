@@ -39,6 +39,29 @@ export function captionForProgress(progress: number, captionCount: number): numb
  * fit). Anything outside the frame simply shows the ambient engraving.
  */
 /**
+ * How much to enlarge the artwork beyond a plain contain fit.
+ *
+ * Contain-fitting a 16:9 frame into a portrait phone leaves the artwork a thin
+ * strip — roughly a quarter of the screen height on a 390x844 device. The
+ * frame's upper area is mostly empty, so enlarging it and letting the top crop
+ * costs nothing and makes the figures legible. The cap keeps the labelled
+ * balance gauges inside the horizontal crop.
+ */
+export function storyZoom(
+  viewportWidth: number,
+  viewportHeight: number,
+  frameAspect: number,
+): number {
+  if (viewportWidth <= 0 || viewportHeight <= 0 || frameAspect <= 0) return 1;
+  if (viewportWidth / viewportHeight >= frameAspect) return 1;
+
+  // Fraction of the viewport height a contain fit would occupy.
+  const heightFraction = viewportWidth / frameAspect / viewportHeight;
+  if (heightFraction <= 0) return 1;
+  return Math.min(1.35, Math.max(1, 0.42 / heightFraction));
+}
+
+/**
  * Where the frame sits within the viewport, as the offset half of the shader's
  * `p = uv * scale * 0.5 + offset` mapping.
  *
@@ -52,11 +75,12 @@ export function storyOffset(
   viewportWidth: number,
   viewportHeight: number,
   frameAspect: number,
+  zoom = 1,
 ): [number, number] {
   const minDimension = Math.min(viewportWidth, viewportHeight);
   if (minDimension <= 0 || frameAspect <= 0 || viewportHeight <= 0) return [0.5, 0.5];
 
-  const [, scaleY] = storyScale(viewportWidth, viewportHeight, frameAspect);
+  const [, scaleY] = storyScale(viewportWidth, viewportHeight, frameAspect, zoom);
   return [0.5, ((viewportHeight / minDimension) * scaleY) / 2];
 }
 
@@ -64,16 +88,26 @@ export function storyScale(
   viewportWidth: number,
   viewportHeight: number,
   frameAspect: number,
+  zoom = 1,
 ): [number, number] {
   const minDimension = Math.min(viewportWidth, viewportHeight);
   if (minDimension <= 0 || frameAspect <= 0) return [1, 1];
 
   const viewportAspect = viewportWidth / viewportHeight;
 
+  // Zoom divides rather than multiplies: in the shader's
+  // `p = uv * scale * 0.5 + offset`, a larger scale maps the frame onto a
+  // *smaller* screen area, so enlarging the artwork means shrinking the scale.
   if (viewportAspect > frameAspect) {
     // Viewport is wider than the frame: height is the limiting dimension.
-    return [minDimension / (frameAspect * viewportHeight), minDimension / viewportHeight];
+    return [
+      minDimension / (frameAspect * viewportHeight * zoom),
+      minDimension / (viewportHeight * zoom),
+    ];
   }
   // Viewport is narrower: width is the limiting dimension.
-  return [minDimension / viewportWidth, (frameAspect * minDimension) / viewportWidth];
+  return [
+    minDimension / (viewportWidth * zoom),
+    (frameAspect * minDimension) / (viewportWidth * zoom),
+  ];
 }
