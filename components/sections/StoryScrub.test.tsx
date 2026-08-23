@@ -49,7 +49,8 @@ describe("StoryScrub", () => {
   it("exposes the whole story as a plain list in server markup", () => {
     const markup = renderToStaticMarkup(<StoryScrub />);
     expect(markup).toContain("You roast someone.");
-    expect(markup).toContain("Settlement clears. The aura moves.");
+    expect(markup).toContain("Underwriters review.");
+    expect(markup).toContain("Settlement clears.");
     // No scroll readout without JavaScript — it would be meaningless.
     expect(markup).not.toContain("Tape");
   });
@@ -89,8 +90,9 @@ describe("StoryScrub", () => {
       window.dispatchEvent(new Event("scroll"));
     });
 
+    // Six captions, so halfway lands on the fourth.
     const active = container.querySelector(".opacity-100");
-    expect(active?.textContent).toBe("You file the claim. Evidence attached.");
+    expect(active?.textContent).toBe("Evidence attached.");
   });
 
   it("reaches the final caption at the end of the story", () => {
@@ -99,9 +101,7 @@ describe("StoryScrub", () => {
     act(() => {
       window.dispatchEvent(new Event("scroll"));
     });
-    expect(container.querySelector(".opacity-100")?.textContent).toBe(
-      "Settlement clears. The aura moves.",
-    );
+    expect(container.querySelector(".opacity-100")?.textContent).toBe("Settlement clears.");
   });
 
   it("reports the tape position, which is how the reader knows it is scrubbing", () => {
@@ -117,7 +117,7 @@ describe("StoryScrub", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
     const hidden = container.querySelectorAll('p[aria-hidden="true"]');
-    expect(hidden).toHaveLength(3);
+    expect(hidden).toHaveLength(5);
   });
 
   it("stays a plain list under reduced motion, with no scrubbing at all", () => {

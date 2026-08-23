@@ -14,8 +14,10 @@ const SCREENS = 4;
 const CAPTIONS = [
   "You roast someone.",
   "It lands.",
-  "You file the claim. Evidence attached.",
-  "Settlement clears. The aura moves.",
+  "You file a claim.",
+  "Evidence attached.",
+  "Underwriters review.",
+  "Settlement clears.",
 ] as const;
 
 /**
@@ -85,7 +87,8 @@ export function StoryScrub() {
 
         {scrubbing ? (
           // Scrubbing: one caption at a time, stacked in place and cross-faded.
-          <div className="relative h-[6em] max-w-[24ch] md:h-[4.5em]">
+          // The wash keeps type crisp where it crosses the engraving.
+          <div className="relative -mx-6 h-[6em] max-w-[34ch] bg-[radial-gradient(120%_150%_at_0%_100%,var(--color-paper)_30%,transparent_78%)] px-6 md:-mx-12 md:h-[4.5em] md:px-12">
             {CAPTIONS.map((text, index) => (
               <p
                 key={text}

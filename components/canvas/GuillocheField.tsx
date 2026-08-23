@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/cn";
 import { FRAGMENT_SHADER, VERTEX_SHADER } from "./guilloche-shaders";
 import { prefersReducedMotion } from "@/lib/motion/use-reduced-motion";
 import { STORY_ATLAS } from "@/lib/story/atlas";
@@ -62,6 +63,9 @@ function buildProgram(gl: WebGL2RenderingContext) {
 export function GuillocheField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [unsupported, setUnsupported] = useState(false);
+  // The plate starts invisible and fades up once there is something to show, so
+  // it resolves into the page instead of snapping in behind it.
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -150,6 +154,7 @@ export function GuillocheField() {
     let lastFrameTime = 0;
     let smoothedStoryFrame = reduced ? STILL_FRAME : 0;
     let scrubSection: HTMLElement | null = null;
+    let revealedOnce = false;
 
     const pointer = { x: 0, y: 0 };
     const smoothedPointer = { x: 0, y: 0 };
@@ -217,6 +222,11 @@ export function GuillocheField() {
       gl!.uniform1f(uniforms.storyFrame, Math.round(smoothedStoryFrame));
       gl!.uniform1f(uniforms.storyStrength, strength);
       gl!.drawArrays(gl!.TRIANGLES, 0, 3);
+
+      if (!revealedOnce) {
+        revealedOnce = true;
+        setRevealed(true);
+      }
     }
 
     function loop(now: number) {
@@ -295,7 +305,10 @@ export function GuillocheField() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 h-full w-full"
+      className={cn(
+        "pointer-events-none fixed inset-0 z-0 h-full w-full transition-opacity duration-[1200ms] ease-out",
+        revealed ? "opacity-100" : "opacity-0",
+      )}
     />
   );
 }

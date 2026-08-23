@@ -44,15 +44,22 @@ nothing else.
 
 ## The story
 
-The middle of the page is a cartoon of the mechanic — one character roasts another, files a claim, and the aura crosses over — scrubbed by scroll. Scroll down and it advances; scroll up and it runs backwards.
+The middle of the page is a cartoon of the mechanic, scrubbed by scroll: a roast
+lands on the street, the roaster walks to a kiosk and files a claim, attaches
+evidence, an underwriter stamps it at the bank counter, and the aura crosses
+over. Scroll down and it advances; scroll up and it runs backwards.
 
-It is **not a video**. It is 96 frames packed into one greyscale sprite sheet
-(`public/story/story-atlas.png`, ~290 KB), sampled by the shader and engraved
-into the guilloché line field. Scrubbing a video file would mean seeking on
+Each frame is a **camera window onto a world three frames wide**, and the camera
+follows the character as they walk between locations — so scrolling travels
+through a scene rather than watching a fixed stage.
+
+It is **not a video**. It is 96 frames — six acts of sixteen — packed into one
+greyscale sprite sheet (`public/story/story-atlas.png`, ~238 KB), sampled by the
+shader and engraved into the guilloché line field. Scrubbing a video file would mean seeking on
 every frame, which stutters forwards and is far worse backwards; picking an
 atlas cell costs the same in either direction.
 
-The current artwork is a **placeholder** — stick figures, four acts of 24
+The current artwork is a **placeholder** — stick figures, six acts of 16
 frames. To replace it with real animation, edit `scripts/lib/story-frames.mjs`
 (or pack your own frames at the same geometry) and regenerate:
 

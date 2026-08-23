@@ -53,7 +53,7 @@ float storyInk(vec2 uv) {
 void main() {
   vec2 uv = (gl_FragCoord.xy * 2.0 - uResolution) / min(uResolution.x, uResolution.y);
   vec2 centred = uv - uPointer * 0.10;
-  float t = uTime * 0.06 + uScroll * 1.6;
+  float t = uTime * 0.06 + uScroll * 2.4;
 
   float story = storyInk(uv) * uStoryStrength;
   float figure = smoothstep(0.38, 0.62, story);
