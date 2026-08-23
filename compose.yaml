@@ -1,0 +1,75 @@
+name: aurabank
+
+services:
+  web:
+    build: .
+    image: aurabank-web:latest
+    container_name: aurabank-web
+    restart: unless-stopped
+    environment:
+      # The waitlist database is the only state; it lives on the volume below.
+      WAITLIST_DB_PATH: /app/data/waitlist.db
+    volumes:
+      # Named rather than bind-mounted so the database survives image rebuilds
+      # and is not exposed to the host filesystem's permissions.
+      - waitlist-data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp
+      # Next writes its runtime caches here; nothing in it needs to persist.
+      - /app/.next/cache
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: 1.0
+    # A Node server needs more headroom than tikwah's nginx.
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Free Cloudflare quick tunnel: a public, CDN-backed URL with no domain and
+  # no account, the same way tikwah is served.
+  #
+  # Unlike tikwah this shares a bridge network with the app rather than a
+  # tailscale container's namespace, so it reaches the app by service name.
+  # Adding a tailnet node would need a TS_AUTHKEY.
+  #
+  # The hostname is randomly assigned and CHANGES whenever this container
+  # restarts. Read the current one with:
+  #   docker logs aurabank-cloudflared 2>&1 | grep -o 'https://.*trycloudflare.com'
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: aurabank-cloudflared
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    command: tunnel --no-autoupdate --url http://web:8080
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: 0.5
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  # Waitlist applications. Back this up; nothing else here is stateful.
+  waitlist-data:
