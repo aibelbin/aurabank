@@ -16,11 +16,17 @@ describe("landing page", () => {
     expect(markup).toContain("Aura is not created. It is transferred.");
   });
 
-  it("tells the settlement story in four captions, readable without JavaScript", () => {
-    expect(markup).toContain("You roast someone.");
-    expect(markup).toContain("It lands.");
-    expect(markup).toContain("You file the claim. Evidence attached.");
-    expect(markup).toContain("Settlement clears. The aura moves.");
+  it("explains the mechanic in the story captions, readable without JavaScript", () => {
+    for (const line of [
+      "You roast someone.",
+      "It lands.",
+      "You file a claim.",
+      "Settlement clears.",
+      "State the amount you are owed. Attach the evidence.",
+      "Underwriters approve by hand. Their balance debits. Yours credits.",
+    ]) {
+      expect(markup).toContain(line);
+    }
   });
 
   it("marks the story section for the canvas to find and scrub", () => {

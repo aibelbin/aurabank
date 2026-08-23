@@ -52,6 +52,11 @@ into the guilloché line field. Scrubbing a video file would mean seeking on
 every frame, which stutters forwards and is far worse backwards; picking an
 atlas cell costs the same in either direction.
 
+The artwork is **atmosphere, not explanation** — the captions and the step rail
+carry the mechanic, because type at real size is always more legible than an
+engraving at 9% opacity behind it. Adding detail to the artwork was tried and
+reverted; it read as clutter without being any clearer.
+
 The current artwork is a **placeholder** — stick figures, four acts of 24
 frames. To replace it with real animation, edit `scripts/lib/story-frames.mjs`
 (or pack your own frames at the same geometry) and regenerate:

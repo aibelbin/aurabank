@@ -70,7 +70,8 @@ Everything runs in house. At runtime the page makes **zero external network requ
   - DPR capped at 2. Resolution scales down if frame time degrades.
   - rAF loop pauses when the canvas is offscreen or the tab is blurred.
 - **Split-character headlines.** Headline text is exploded into line → word → char. Each char carries its own CSS custom properties and rises out of a clip mask on a stagger, triggered by IntersectionObserver.
-- **The story, engraved.** While the story section is on screen, the current frame of the toon is sampled from a sprite atlas and fed into the same field. Dark artwork lays down a fourth, much finer plate inside the silhouette — that density is what makes the figure read as an engraved portrait rather than a pasted-on cartoon. The plate cross-fades in and out at the section's edges so it never appears behind the hero or the disclosure copy.
+- **The story, engraved.** While the story section is on screen, the current frame of the toon is sampled from a sprite atlas and fed into the same field. Dark artwork lays down a fourth, much finer plate inside the silhouette — that density is what makes the figure read as an engraved portrait rather than a pasted-on cartoon. The plate cross-fades in and out at the section's edges so it never appears behind the hero or the disclosure copy. It is deliberately restrained: the captions carry the meaning, so the artwork must never compete with the type in front of it.
+- **The plate fades up on first paint** rather than snapping in, so the engraving resolves into the page instead of appearing behind it.
 - **Scroll drives the story, not time.** The frame index is a pure function of scroll position, so scrolling up runs the story backwards at no extra cost. The displayed frame eases toward the target to give the scrub weight.
 - **Hairline rules** draw left-to-right on entry.
 - **Aura figures** count up when scrolled into view.
@@ -88,16 +89,24 @@ Four beats. The mantra **"You roast. We verify. The aura moves."** closes the pa
 Mono label: `ESTABLISHED 2026`. Scroll cue below the fold.
 
 ### 02 — How settlement works (the story)
-A section four viewport-heights tall. The first height pins it; the remaining three scrub the toon. Four captions, one at a time, cross-faded:
+A section four viewport-heights tall. The first height pins it; the remaining three scrub the toon.
 
-> `01` You roast someone.
-> `02` It lands.
-> `03` You file the claim. Evidence attached.
-> `04` Settlement clears. The aura moves.
+**Type explains the mechanic; the artwork is atmosphere.** An engraving at low opacity behind text can carry mood but cannot carry information — a first attempt at making the artwork more explanatory made it cluttered and no clearer, and was reverted. Real typography at real size always wins, so the words do the work:
+
+| | Headline | Explanation |
+|---|---|---|
+| `01` | You roast someone. | Aura is owed from that moment. The paperwork comes later. |
+| `02` | It lands. | The debt exists whether or not anyone admits it. |
+| `03` | You file a claim. | State the amount you are owed. Attach the evidence. |
+| `04` | Settlement clears. | Underwriters approve by hand. Their balance debits. Yours credits. |
+
+One step shows at a time, cross-faded, over a soft paper wash that keeps type crisp where it crosses the engraving.
+
+Beneath them, a **step rail** — `01 Roast · 02 Impact · 03 Claim · 04 Settlement` — keeps the whole process visible at once with the current stage lit, so the mechanic is legible at a glance without reading a word of the captions. The current stage carries `aria-current="step"`.
 
 A mono readout reports the tape position (`TAPE 042 / 96`), which is how the reader understands the scroll is driving something.
 
-Without JavaScript, or under reduced motion, the captions render as a plain numbered list — the whole story is readable with no scrolling at all, and no scrub readout is shown.
+Without JavaScript, or under reduced motion, every step renders as a plain numbered list with its explanation — the most informative state of the page, readable with no scrolling at all.
 
 ### 03 — Full disclosure
 > Aura is zero-sum. Your gain is someone's loss. There is no aura printer.

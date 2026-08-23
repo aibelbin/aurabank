@@ -83,7 +83,9 @@ void main() {
   float ambient = line * vignette * uOpacity;
   // The figure's own lines carry more weight, plus a faint wash so the shape
   // holds together at a glance.
-  float engraved = line * figure * 0.5 + figure * 0.09;
+  // Deliberately restrained: the captions explain the mechanic, so the artwork
+  // is atmosphere and must never compete with the type in front of it.
+  float engraved = line * figure * 0.38 + figure * 0.06;
 
   fragColor = vec4(vec3(0.04), clamp(ambient + engraved, 0.0, 1.0));
 }`;

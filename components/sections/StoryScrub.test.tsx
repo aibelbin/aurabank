@@ -30,6 +30,9 @@ function positionSection({ top, height }: { top: number; height: number }) {
   } as DOMRect);
 }
 
+const activeStep = (container: HTMLElement) =>
+  container.querySelector('[data-caption][data-active="true"]');
+
 beforeEach(() => {
   stubMatchMedia(false);
   // Run scroll work synchronously so assertions see the settled state.
@@ -46,12 +49,22 @@ afterEach(() => {
 });
 
 describe("StoryScrub", () => {
-  it("exposes the whole story as a plain list in server markup", () => {
+  it("exposes the whole mechanic as a plain list in server markup", () => {
     const markup = renderToStaticMarkup(<StoryScrub />);
     expect(markup).toContain("You roast someone.");
-    expect(markup).toContain("Settlement clears. The aura moves.");
+    expect(markup).toContain("Settlement clears.");
+    // The supporting lines are where the mechanic is actually explained.
+    expect(markup).toContain("State the amount you are owed. Attach the evidence.");
+    expect(markup).toContain("Underwriters approve by hand. Their balance debits. Yours credits.");
     // No scroll readout without JavaScript — it would be meaningless.
     expect(markup).not.toContain("Tape");
+  });
+
+  it("lists every stage in the rail, so the whole process is visible at once", () => {
+    const markup = renderToStaticMarkup(<StoryScrub />);
+    for (const tag of ["Roast", "Impact", "Claim", "Settlement"]) {
+      expect(markup).toContain(`data-step="${tag}"`);
+    }
   });
 
   it("marks itself for the canvas to find", () => {
@@ -63,8 +76,7 @@ describe("StoryScrub", () => {
   it("reserves several viewport-heights of scroll distance", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
-    const section = container.querySelector<HTMLElement>("#story");
-    expect(section?.style.height).toBe("400svh");
+    expect(container.querySelector<HTMLElement>("#story")?.style.height).toBe("400svh");
   });
 
   it("switches to the scrub readout once mounted", () => {
@@ -73,15 +85,15 @@ describe("StoryScrub", () => {
     expect(container.textContent).toContain("Tape");
   });
 
-  it("shows the first caption at the start of the story", () => {
+  it("shows the first step, headline and explanation, at the start", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
-    const active = container.querySelector(".opacity-100");
-    expect(active?.textContent).toBe("You roast someone.");
+    expect(activeStep(container)?.textContent).toContain("You roast someone.");
+    expect(activeStep(container)?.textContent).toContain("Aura is owed from that moment.");
   });
 
-  it("advances the caption as the section scrolls past", () => {
-    // Halfway through 3200px of scrubbable distance.
+  it("advances the step as the section scrolls past", () => {
+    // Halfway through 3200px of scrubbable distance: four steps, so the third.
     positionSection({ top: -1600, height: 4000 });
     const { container } = render(<StoryScrub />);
 
@@ -89,19 +101,28 @@ describe("StoryScrub", () => {
       window.dispatchEvent(new Event("scroll"));
     });
 
-    const active = container.querySelector(".opacity-100");
-    expect(active?.textContent).toBe("You file the claim. Evidence attached.");
+    expect(activeStep(container)?.textContent).toContain("You file a claim.");
+    expect(activeStep(container)?.textContent).toContain("Attach the evidence.");
   });
 
-  it("reaches the final caption at the end of the story", () => {
+  it("marks the current stage in the rail for assistive technology", () => {
+    positionSection({ top: -1600, height: 4000 });
+    const { container } = render(<StoryScrub />);
+    act(() => {
+      window.dispatchEvent(new Event("scroll"));
+    });
+    expect(container.querySelector('[aria-current="step"]')?.getAttribute("data-step")).toBe(
+      "Claim",
+    );
+  });
+
+  it("reaches the final step at the end of the story", () => {
     positionSection({ top: -3200, height: 4000 });
     const { container } = render(<StoryScrub />);
     act(() => {
       window.dispatchEvent(new Event("scroll"));
     });
-    expect(container.querySelector(".opacity-100")?.textContent).toBe(
-      "Settlement clears. The aura moves.",
-    );
+    expect(activeStep(container)?.textContent).toContain("Settlement clears.");
   });
 
   it("reports the tape position, which is how the reader knows it is scrubbing", () => {
@@ -113,19 +134,20 @@ describe("StoryScrub", () => {
     expect(container.textContent).toContain("096 / 96");
   });
 
-  it("hides only the inactive captions from assistive technology", () => {
+  it("hides only the inactive steps from assistive technology", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
-    const hidden = container.querySelectorAll('p[aria-hidden="true"]');
-    expect(hidden).toHaveLength(3);
+    expect(container.querySelectorAll('[data-caption][aria-hidden="true"]')).toHaveLength(3);
+    expect(container.querySelectorAll('[data-caption][data-active="true"]')).toHaveLength(1);
   });
 
-  it("stays a plain list under reduced motion, with no scrubbing at all", () => {
+  it("stays a plain list under reduced motion, with every step legible at once", () => {
     stubMatchMedia(true);
     positionSection({ top: -1600, height: 4000 });
     const { container } = render(<StoryScrub />);
 
     expect(container.querySelector("ol")).not.toBeNull();
     expect(container.textContent).not.toContain("Tape");
+    expect(container.querySelectorAll("[data-caption]")).toHaveLength(4);
   });
 });
