@@ -1,1 +1,20 @@
+# dependencies
+node_modules/
+
+# next
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# local data — the waitlist database lives here and is never committed
+data/*
+!data/.gitkeep
+
+# env
 .env
+.env.*
+!.env.example
+
+# os
+.DS_Store

@@ -4,72 +4,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AuraBank is a gamified social fintech app where users trade "Aura" points based on real-life interactions. A Submitter reports an event (specifying a Gainer and Loser), an Admin reviews it via a dashboard, and upon approval Aura is transferred between users' bank accounts.
+AuraBank is a gamified social fintech app where users trade "Aura" points based on real-life interactions. Person A roasts Person B, files a claim with evidence, and on approval the aura debits B's balance and credits A's. Aura is never minted — only transferred.
 
-**Backend:** Supabase (PostgreSQL + Auth), hosted at `ypfcnqtxtasrjygjccms.supabase.co`.
+Rebuilt from scratch in August 2026 as a **web app** (v1 was Kotlin/Compose Android, preserved at tag `pre-rebuild-2026-08-23`). Web, because it reaches iPhone users without App Store or Xcode overhead.
 
-## Repository Structure
+**The primary requirement is visual appeal.** This must not look like a normal everyday website.
 
-Monorepo with two independent modules:
+## Current Scope
 
-- **`admin/`** — Vite + React + TypeScript admin dashboard for reviewing/approving transaction requests
-- **`android/`** — Kotlin + Jetpack Compose Android app (early stage, scaffolded with Material3 theming)
+The repository contains **sub-project 1: the landing page** — one scrolling page ending in a waitlist. Authentication, accounts, balances, filing claims, and the admin clearing queue are all future sub-projects, each getting its own spec.
 
-There is no shared code between modules. Each has its own build system.
+Design spec (source of truth): `docs/superpowers/specs/2026-08-23-aurabank-landing-design.md`
 
-## Build & Dev Commands
+## Stack
 
-### Admin Panel (`admin/`)
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · Vitest · SQLite via `node:sqlite`
 
-```bash
-cd admin && npm install    # install dependencies
-npm run dev                # start Vite dev server
-npm run build              # production build
-npm run lint               # ESLint
-npm run test               # run tests (vitest)
-npm run test:watch         # run tests in watch mode
-```
+Requires Node 24+ for the built-in SQLite. Path alias `@/*` maps to the repo root.
 
-Requires `admin/.env` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-
-### Android App (`android/`)
+## Commands
 
 ```bash
-cd android
-./gradlew assembleDebug    # build debug APK
-./gradlew test             # run unit tests
-./gradlew connectedAndroidTest  # run instrumentation tests
+npm run dev          # dev server
+npm run build        # production build
+npm start            # serve the production build
+npm test             # full suite
+npm run test:watch   # watch mode
+npm run typecheck    # tsc --noEmit
+
+node scripts/generate-story-frames.mjs   # redraw the story atlas
 ```
 
-Requires Android SDK at path specified in `android/local.properties`. Min SDK 24, target SDK 36, Kotlin 2.2.10.
+## Hard Constraints
 
-## Architecture
+**Everything is local.** The page makes zero external requests at runtime — no CDN, no Google Fonts, no analytics, no hosted database. Fonts are bundled woff2 served by the app. `lib/__tests__/local-only.test.ts` fails if that regresses; do not add an external host to get around it.
 
-### Admin Panel
+**No dark mode.** The design is ink on paper — printed stationery, not a webpage. Do not add a dark variant.
 
-Single-page React app using:
-- **React Query** (`@tanstack/react-query`) for all Supabase data fetching and cache management
-- **React Router** for routing (currently two routes: `/` dashboard, `*` 404)
-- **Shadcn/ui** (Radix primitives + Tailwind) for all UI components in `src/components/ui/`
-- Path alias: `@/*` maps to `src/*`
+**Accent colours only on figures.** Settlement green and debt red appear on numbers, never on body text or chrome.
 
-Core data flow lives in `src/pages/Index.tsx`: fetches transactions from Supabase, displays as filterable cards, handles approve/reject mutations that also update the `bank` table's `total_aura`.
+**Deadpan voice.** The joke never winks. Institutional bank language applied to absurd subject matter; if it reads like a meme page, the joke dies.
 
-Key types are in `src/types/request.ts`. Supabase client is initialized in `src/lib/supabase.ts`.
+**Every animation gated** behind `prefers-reduced-motion`, and the page must read correctly with no JavaScript and no WebGL. The story's captions fall back to a plain numbered list.
 
-### Android App
+**Waitlist storage is a local SQLite file** at `data/waitlist.db` (gitignored, `WAITLIST_DB_PATH` overrides). This needs a persistent Node process — on a serverless host the filesystem is ephemeral and signups vanish silently. Migrating to Postgres touches only `lib/waitlist/store.ts`.
 
-Namespace: `com.example.aurabank`. Currently a scaffold with `MainActivity.kt` using Compose and Material3 dynamic color theming. No navigation, networking, or business logic yet.
+## Architecture Notes
 
-## Database Schema (Supabase PostgreSQL)
-
-Three tables:
-- **`user`** — identity (id, name, org, total_aura, debt_aura)
-- **`bank`** — financial ledger per user (total_aura, aura_debt, FK to user)
-- **`transaction`** — aura transfer requests (submitter_id, gainer_id, loser_id, expected_aura, status: pending/approved/rejected, description, video_link)
-
-On approval, `bank.total_aura` is updated for the gainer. The loser deduction logic is not yet implemented.
+- `app/page.tsx` composes four beats: hero, the story, full disclosure, open an account.
+- `components/canvas/GuillocheField.tsx` owns the WebGL2 context, the atlas texture, and the rAF loop. It knows nothing about page copy — it finds the story section by its `data-story-scrub` attribute.
+- The story is **96 frames in a greyscale sprite atlas**, not a video. Scrubbing a video means seeking per frame, which stutters forwards and is far worse backwards; an atlas cell lookup costs the same in either direction. Artwork is a placeholder — regenerate with `scripts/generate-story-frames.mjs`.
+- `lib/story/scrub.ts` and `lib/motion/split-text.ts` are pure functions with no DOM access, so the canvas and the DOM derive state from the same maths.
+- `app/actions/waitlist.ts` is the only writer. A `"use server"` module may only export async functions — shared constants live in `lib/waitlist/state.ts`.
+- A repeat waitlist email returns the same success state as a new signup, so the form cannot be used to check whether someone has already applied. Do not "fix" this into a distinct error.
 
 ## Role Constraint
 
-The project owner is using this to learn Kotlin and system design. Act as a **Product Manager + System Design Advisor**. Do not write or implement code unless explicitly asked. Focus on architecture suggestions and explaining the *why* behind recommendations.
+The project owner is using this to learn system design. Act as a **Product Manager + System Design Advisor**: favour explaining the *why* behind recommendations, and surface trade-offs rather than burying them. Implement when asked directly — but design decisions get discussed first.
