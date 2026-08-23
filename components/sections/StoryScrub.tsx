@@ -118,7 +118,7 @@ export function StoryScrub() {
         {scrubbing ? (
           // One step at a time, stacked in place and cross-faded. The wash keeps
           // type crisp where it crosses the engraving.
-          <div className="relative -mx-6 mt-10 min-h-[13em] max-w-[42ch] bg-[radial-gradient(125%_150%_at_0%_100%,var(--color-paper)_32%,transparent_80%)] px-6 sm:min-h-[11em] md:-mx-12 md:mt-auto md:min-h-[10em] md:px-12">
+          <div className="relative -mx-6 mt-6 min-h-[13em] max-w-[42ch] bg-[radial-gradient(125%_150%_at_0%_100%,var(--color-paper)_32%,transparent_80%)] px-6 sm:min-h-[11em] md:-mx-12 md:mt-auto md:min-h-[10em] md:px-12">
             {STEPS.map((entry, index) => (
               <div
                 key={entry.number}
@@ -141,7 +141,7 @@ export function StoryScrub() {
             ))}
           </div>
         ) : (
-          <ol className="mt-10 max-w-[52ch] space-y-8 md:mt-auto">
+          <ol className="mt-6 max-w-[52ch] space-y-8 md:mt-auto">
             {STEPS.map((entry) => (
               <li key={entry.number} data-caption className="flex gap-5">
                 <MonoLabel muted>{entry.number}</MonoLabel>

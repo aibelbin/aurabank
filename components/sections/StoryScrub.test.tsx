@@ -80,8 +80,8 @@ describe("StoryScrub", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
     const captions = container.querySelector('[data-caption]')?.parentElement;
-    // mt-10 sits them under the header; md:mt-auto drops them to the bottom.
-    expect(captions?.className).toContain("mt-10");
+    // mt-6 sits them under the header; md:mt-auto drops them to the bottom.
+    expect(captions?.className).toContain("mt-6");
     expect(captions?.className).toContain("md:mt-auto");
   });
 

@@ -55,10 +55,12 @@ export function storyZoom(
   if (viewportWidth <= 0 || viewportHeight <= 0 || frameAspect <= 0) return 1;
   if (viewportWidth / viewportHeight >= frameAspect) return 1;
 
-  // Fraction of the viewport height a contain fit would occupy.
+  // Fraction of the viewport height a contain fit would occupy, and the share
+  // we want it to reach — a little under half the screen, so the artwork comes
+  // up towards the middle instead of sitting in a band at the bottom.
   const heightFraction = viewportWidth / frameAspect / viewportHeight;
   if (heightFraction <= 0) return 1;
-  return Math.min(1.35, Math.max(1, 0.42 / heightFraction));
+  return Math.min(1.7, Math.max(1, 0.46 / heightFraction));
 }
 
 /**

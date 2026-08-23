@@ -145,9 +145,10 @@ The story is responsive in three ways that matter:
 
 - **The artwork is enlarged and cropped** rather than contain-fitted. A 16:9
   frame contain-fitted into a portrait phone is a strip about a quarter of the
-  screen tall; portrait scales it up (capped at 1.35×) and crops the mostly
-  empty top. The cap is why the ledger is drawn well inside the frame's width —
-  push it outward and the horizontal crop eats the account labels.
+  screen tall; portrait scales it up (capped at 1.7×) and crops the mostly empty
+  top, reaching ~44% of the screen. Filling more height means seeing less width,
+  so the cap and the artwork's layout are one decision — at full zoom only the
+  central ~59% of the frame shows, which is why the ledger sits well inside it.
 - **Phones fetch `story-atlas-half.png`** (1920×1620, 133 KB) instead of the
   full sheet, which decodes to tens of megabytes of texture. Small screens also
   cap the device pixel ratio at 1.5 and skip pointer tracking.

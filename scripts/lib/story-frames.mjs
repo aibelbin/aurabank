@@ -99,10 +99,13 @@ function glyphB(surface, cx, baseY, size, ink) {
  * the first thing lost — including the account labels.
  */
 function drawBalances(surface, roaster, victim) {
-  const width = 118;
+  const width = 80;
   const height = 14;
   const y = 246;
-  const inset = 94;
+  // Well inside the frame: portrait crops to the central ~59% of the width at
+  // full zoom, and the gauges and their labels have to survive that. The gap
+  // left between the two gauges also stops them reading as one long bar.
+  const inset = 140;
 
   const gauge = (x, fraction) => {
     fillRect(surface, x, y, width, height, MID);

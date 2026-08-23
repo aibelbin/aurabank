@@ -157,27 +157,30 @@ describe("storyZoom", () => {
     // 390x844 contain-fits to about a quarter of the screen height.
     const containFraction = 390 / FRAME_ASPECT / 844;
     expect(containFraction).toBeLessThan(0.3);
-    expect(storyZoom(390, 844, FRAME_ASPECT)).toBeGreaterThan(1.3);
+    expect(storyZoom(390, 844, FRAME_ASPECT)).toBeGreaterThan(1.6);
   });
 
   it("is capped, so the horizontal crop can never eat the account labels", () => {
-    expect(storyZoom(320, 1200, FRAME_ASPECT)).toBeLessThanOrEqual(1.35);
+    expect(storyZoom(320, 1200, FRAME_ASPECT)).toBeLessThanOrEqual(1.7);
   });
 
-  it("leaves a tablet in portrait alone, where the strip is already tall enough", () => {
-    expect(storyZoom(768, 1024, FRAME_ASPECT)).toBe(1);
+  it("barely touches a portrait tablet, where the strip is nearly tall enough already", () => {
+    const zoom = storyZoom(768, 1024, FRAME_ASPECT);
+    expect(zoom).toBeGreaterThan(1);
+    expect(zoom).toBeLessThan(1.15);
   });
 
-  it("keeps the ledger inside the crop at maximum zoom", () => {
-    // Ledger extent in frame pixels, from scripts/lib/story-frames.mjs:
-    // the "A" glyph starts at ~68 and the "B" glyph ends at ~413 of 480.
-    const maxZoom = 1.35;
+  it("keeps the ledger and both figures inside the crop at maximum zoom", () => {
+    // Frame-pixel extents from scripts/lib/story-frames.mjs: the "A" glyph
+    // starts at ~114 and the "B" glyph ends at ~367; the two figures reach
+    // from ~106 to ~377 once their arms are out, and are the wider pair.
+    const maxZoom = 1.7;
     const visible = 480 / maxZoom;
     const cropLeft = (480 - visible) / 2;
     const cropRight = cropLeft + visible;
 
-    expect(cropLeft).toBeLessThan(68);
-    expect(cropRight).toBeGreaterThan(413);
+    expect(cropLeft).toBeLessThan(106);
+    expect(cropRight).toBeGreaterThan(377);
   });
 
   it("actually makes the artwork bigger on screen, not smaller", () => {
@@ -194,7 +197,7 @@ describe("storyZoom", () => {
 
     expect(contained).toBeLessThan(0.3);
     expect(zoomed).toBeGreaterThan(contained);
-    expect(zoomed).toBeGreaterThan(0.33);
+    expect(zoomed).toBeGreaterThan(0.42);
   });
 
   it("still anchors the enlarged artwork to the bottom of the viewport", () => {
