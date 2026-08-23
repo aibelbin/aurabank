@@ -118,7 +118,7 @@ export function StoryScrub() {
         {scrubbing ? (
           // One step at a time, stacked in place and cross-faded. The wash keeps
           // type crisp where it crosses the engraving.
-          <div className="relative -mx-6 mt-6 min-h-[13em] max-w-[42ch] bg-[radial-gradient(125%_150%_at_0%_100%,var(--color-paper)_32%,transparent_80%)] px-6 sm:min-h-[11em] md:-mx-12 md:mt-auto md:min-h-[10em] md:px-12">
+          <div className="relative -mx-6 mt-6 min-h-[15em] max-w-[42ch] bg-[radial-gradient(125%_150%_at_0%_0%,var(--color-paper)_32%,transparent_80%)] px-6 sm:min-h-[12em] md:-mx-12 md:mt-auto md:min-h-[10em] md:bg-[radial-gradient(125%_150%_at_0%_100%,var(--color-paper)_32%,transparent_80%)] md:px-12">
             {STEPS.map((entry, index) => (
               <div
                 key={entry.number}
@@ -126,15 +126,16 @@ export function StoryScrub() {
                 data-active={index === step ? "true" : "false"}
                 aria-hidden={index === step ? undefined : "true"}
                 className={cn(
-                  "absolute inset-x-6 bottom-0 transition-opacity duration-500 md:inset-x-12",
+                  "absolute inset-x-6 top-0 transition-opacity duration-500",
+                  "md:inset-x-12 md:top-auto md:bottom-0",
                   index === step ? "opacity-100" : "opacity-0",
                 )}
               >
                 <MonoLabel muted>{entry.number}</MonoLabel>
-                <p className="mt-4 text-[clamp(1.75rem,5vw,3.5rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
+                <p className="mt-4 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.04] font-semibold tracking-[-0.03em]">
                   {entry.headline}
                 </p>
-                <p className="mt-4 max-w-[44ch] text-base leading-[1.5] text-ink/70 md:text-lg">
+                <p className="mt-4 max-w-[44ch] text-lg leading-[1.5] text-ink/70">
                   {entry.support}
                 </p>
               </div>
@@ -146,10 +147,8 @@ export function StoryScrub() {
               <li key={entry.number} data-caption className="flex gap-5">
                 <MonoLabel muted>{entry.number}</MonoLabel>
                 <div>
-                  <p className="text-xl leading-[1.25] font-semibold md:text-2xl">
-                    {entry.headline}
-                  </p>
-                  <p className="mt-2 leading-[1.5] text-ink/70">{entry.support}</p>
+                  <p className="text-2xl leading-[1.2] font-semibold">{entry.headline}</p>
+                  <p className="mt-2 text-lg leading-[1.5] text-ink/70">{entry.support}</p>
                 </div>
               </li>
             ))}

@@ -85,6 +85,16 @@ describe("StoryScrub", () => {
     expect(captions?.className).toContain("md:mt-auto");
   });
 
+  it("hangs each caption from the top on phones so longer text grows downward", () => {
+    positionSection({ top: 0, height: 4000 });
+    const { container } = render(<StoryScrub />);
+    const caption = container.querySelector('[data-caption]');
+    // Bottom-anchoring would push bigger text down the screen instead of up.
+    expect(caption?.className).toContain("top-0");
+    expect(caption?.className).toContain("md:bottom-0");
+    expect(caption?.className).toContain("md:top-auto");
+  });
+
   it("switches to the one-step-at-a-time presentation once mounted", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
