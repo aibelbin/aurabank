@@ -81,6 +81,44 @@ node scripts/generate-story-frames.mjs
 That rewrites both the atlas and `lib/story/atlas.ts`, so no constants need
 updating by hand.
 
+## Deployment
+
+Runs on the `fox` server as a Docker stack, alongside `tikwah` and following the
+same pattern: read-only root filesystem, all capabilities dropped,
+`no-new-privileges`, CPU and memory caps, log rotation, and a free Cloudflare
+quick tunnel for the public URL. No ports are published on the host.
+
+```bash
+# Ship the committed tree (nothing untracked reaches the server)
+ssh fox 'mkdir -p ~/aurabank'
+git archive HEAD | ssh fox 'tar -x -C ~/aurabank'
+
+# Build and start
+ssh fox 'cd ~/aurabank && docker compose build && docker compose up -d'
+
+# The tunnel hostname is random and CHANGES on every cloudflared restart
+ssh fox "docker logs aurabank-cloudflared 2>&1 | grep -o 'https://.*trycloudflare.com'"
+```
+
+The image is a two-stage build: the toolchain stays in the build stage, and the
+runtime carries Node, Next's standalone server, and nothing else.
+
+**State.** The waitlist database is the only stateful thing here, on the named
+volume `aurabank_waitlist-data` (mounted at `/app/data`). It survives image
+rebuilds and `docker compose down`. Back it up with:
+
+```bash
+ssh fox 'docker run --rm -v aurabank_waitlist-data:/d -v "$PWD":/out alpine \
+  tar czf /out/waitlist-backup.tgz -C /d .'
+```
+
+`docker compose down -v` would **delete** it. Everything else is disposable.
+
+**A tunnel URL is not a permanent address.** It changes whenever the container
+restarts, which `restart: unless-stopped` will do after a reboot. A stable
+address needs either a named Cloudflare tunnel (a domain plus an account) or a
+tailnet node like tikwah's, which needs a `TS_AUTHKEY`.
+
 ## Layout
 
 ```
