@@ -60,13 +60,6 @@ describe("StoryScrub", () => {
     expect(markup).not.toContain("Tape");
   });
 
-  it("lists every stage in the rail, so the whole process is visible at once", () => {
-    const markup = renderToStaticMarkup(<StoryScrub />);
-    for (const tag of ["Roast", "Impact", "Claim", "Settlement"]) {
-      expect(markup).toContain(`data-step="${tag}"`);
-    }
-  });
-
   it("marks itself for the canvas to find", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
@@ -79,10 +72,30 @@ describe("StoryScrub", () => {
     expect(container.querySelector<HTMLElement>("#story")?.style.height).toBe("400svh");
   });
 
-  it("switches to the scrub readout once mounted", () => {
+  it("switches to the one-step-at-a-time presentation once mounted", () => {
     positionSection({ top: 0, height: 4000 });
     const { container } = render(<StoryScrub />);
-    expect(container.textContent).toContain("Tape");
+    expect(container.querySelectorAll('[data-caption][data-active="true"]')).toHaveLength(1);
+  });
+
+  // The artwork's balance bars are the only instrumentation during the scrub.
+  it("shows nothing but the current step while scrubbing", () => {
+    positionSection({ top: -1600, height: 4000 });
+    const { container } = render(<StoryScrub />);
+    act(() => {
+      window.dispatchEvent(new Event("scroll"));
+    });
+
+    expect(container.textContent).not.toContain("Tape");
+    expect(container.textContent).not.toContain("Scroll to advance");
+    expect(container.querySelector("[data-step]")).toBeNull();
+  });
+
+  it("reserves the band where the artwork draws the ledger", () => {
+    positionSection({ top: 0, height: 4000 });
+    const { container } = render(<StoryScrub />);
+    const pinned = container.querySelector<HTMLElement>(".sticky");
+    expect(pinned?.className).toContain("pb-[12svh]");
   });
 
   it("shows the first step, headline and explanation, at the start", () => {
@@ -105,17 +118,6 @@ describe("StoryScrub", () => {
     expect(activeStep(container)?.textContent).toContain("Attach the evidence.");
   });
 
-  it("marks the current stage in the rail for assistive technology", () => {
-    positionSection({ top: -1600, height: 4000 });
-    const { container } = render(<StoryScrub />);
-    act(() => {
-      window.dispatchEvent(new Event("scroll"));
-    });
-    expect(container.querySelector('[aria-current="step"]')?.getAttribute("data-step")).toBe(
-      "Claim",
-    );
-  });
-
   it("reaches the final step at the end of the story", () => {
     positionSection({ top: -3200, height: 4000 });
     const { container } = render(<StoryScrub />);
@@ -123,15 +125,6 @@ describe("StoryScrub", () => {
       window.dispatchEvent(new Event("scroll"));
     });
     expect(activeStep(container)?.textContent).toContain("Settlement clears.");
-  });
-
-  it("reports the tape position, which is how the reader knows it is scrubbing", () => {
-    positionSection({ top: -3200, height: 4000 });
-    const { container } = render(<StoryScrub />);
-    act(() => {
-      window.dispatchEvent(new Event("scroll"));
-    });
-    expect(container.textContent).toContain("096 / 96");
   });
 
   it("hides only the inactive steps from assistive technology", () => {

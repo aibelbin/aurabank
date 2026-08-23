@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import { FRAGMENT_SHADER, VERTEX_SHADER } from "./guilloche-shaders";
 import { prefersReducedMotion } from "@/lib/motion/use-reduced-motion";
 import { STORY_ATLAS } from "@/lib/story/atlas";
-import { frameForProgress, scrubProgress, storyScale } from "@/lib/story/scrub";
+import { frameForProgress, scrubProgress, storyOffset, storyScale } from "@/lib/story/scrub";
 
 const MAX_PIXEL_RATIO = 2;
 const INK_OPACITY = 0.09;
@@ -103,6 +103,7 @@ export function GuillocheField() {
       storyFrame: gl.getUniformLocation(program, "uStoryFrame"),
       storyStrength: gl.getUniformLocation(program, "uStoryStrength"),
       storyScale: gl.getUniformLocation(program, "uStoryScale"),
+      storyOffset: gl.getUniformLocation(program, "uStoryOffset"),
     };
 
     gl.uniform1i(uniforms.story, 0);
@@ -168,7 +169,9 @@ export function GuillocheField() {
       const width = Math.max(1, Math.floor(window.innerWidth * ratio));
       const height = Math.max(1, Math.floor(window.innerHeight * ratio));
       const [scaleX, scaleY] = storyScale(width, height, FRAME_ASPECT);
+      const [offsetX, offsetY] = storyOffset(width, height, FRAME_ASPECT);
       gl!.uniform2f(uniforms.storyScale, scaleX, scaleY);
+      gl!.uniform2f(uniforms.storyOffset, offsetX, offsetY);
 
       if (canvas!.width === width && canvas!.height === height) return;
       canvas!.width = width;

@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { MonoLabel } from "@/components/ui/MonoLabel";
 import { Rule } from "@/components/ui/Rule";
-import { STORY_ATLAS } from "@/lib/story/atlas";
-import { captionForProgress, frameForProgress, scrubProgress } from "@/lib/story/scrub";
+import { captionForProgress, scrubProgress } from "@/lib/story/scrub";
 import { prefersReducedMotion } from "@/lib/motion/use-reduced-motion";
 
 /** Viewport-heights of scroll. The first is spent pinning; the rest scrubs. */
@@ -18,25 +17,21 @@ const SCREENS = 4;
 const STEPS = [
   {
     number: "01",
-    tag: "Roast",
     headline: "You roast someone.",
     support: "Aura is owed from that moment. The paperwork comes later.",
   },
   {
     number: "02",
-    tag: "Impact",
     headline: "It lands.",
     support: "The debt exists whether or not anyone admits it.",
   },
   {
     number: "03",
-    tag: "Claim",
     headline: "You file a claim.",
     support: "State the amount you are owed. Attach the evidence.",
   },
   {
     number: "04",
-    tag: "Settlement",
     headline: "Settlement clears.",
     support: "Underwriters approve by hand. Their balance debits. Yours credits.",
   },
@@ -47,15 +42,14 @@ const STEPS = [
  * engraved into the canvas behind it. Scrolling back up runs the story
  * backwards, because the frame is a function of position, not of time.
  *
- * This section owns the captions, the step rail, and the scroll readout. The
- * artwork lives in GuillocheField, which finds this element by its
- * `data-story-scrub` hook.
+ * While scrubbing, this section shows nothing but the current step. The two
+ * balance bars drawn into the artwork are the only instrumentation on screen,
+ * so they stay legible instead of competing with a rail and a readout.
  */
 export function StoryScrub() {
   const sectionRef = useRef<HTMLElement>(null);
   const [scrubbing, setScrubbing] = useState(false);
   const [step, setStep] = useState(0);
-  const [frame, setFrame] = useState(0);
 
   useEffect(() => {
     // Without JavaScript — or with reduced motion — the steps stay a plain
@@ -72,9 +66,7 @@ export function StoryScrub() {
 
       const rect = section.getBoundingClientRect();
       const progress = scrubProgress(rect.top, rect.height, window.innerHeight);
-
       setStep(captionForProgress(progress, STEPS.length));
-      setFrame(frameForProgress(progress, STORY_ATLAS.frameCount));
     }
 
     function onScroll() {
@@ -101,7 +93,17 @@ export function StoryScrub() {
       style={{ height: `${SCREENS * 100}svh` }}
     >
       <Rule />
-      <div className="sticky top-0 flex h-[100svh] flex-col justify-between px-6 py-10 md:px-12 md:py-12">
+      {/*
+        The bottom padding is deliberate: it reserves the band where the
+        artwork draws the two balance bars, so nothing in the DOM sits on top
+        of the ledger while the story is running.
+      */}
+      <div
+        className={cn(
+          "sticky top-0 flex h-[100svh] flex-col justify-between px-6 pt-10 md:px-12 md:pt-12",
+          scrubbing ? "pb-[12svh] md:pb-[11svh]" : "pb-12",
+        )}
+      >
         <header className="flex items-baseline gap-5">
           <MonoLabel>02</MonoLabel>
           <MonoLabel muted>How settlement works</MonoLabel>
@@ -147,35 +149,6 @@ export function StoryScrub() {
             ))}
           </ol>
         )}
-
-        <footer className="flex flex-col gap-5">
-          {/* The whole mechanic, visible at a glance, with the current stage lit. */}
-          <ol className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-hairline pt-5">
-            {STEPS.map((entry, index) => (
-              <li
-                key={entry.number}
-                data-step={entry.tag}
-                aria-current={scrubbing && index === step ? "step" : undefined}
-                className={cn(
-                  "flex items-baseline gap-2 transition-opacity duration-500",
-                  !scrubbing || index === step ? "opacity-100" : "opacity-35",
-                )}
-              >
-                <MonoLabel muted>{entry.number}</MonoLabel>
-                <MonoLabel>{entry.tag}</MonoLabel>
-              </li>
-            ))}
-          </ol>
-
-          <div className="flex items-baseline justify-between">
-            <MonoLabel muted>Scroll to advance settlement</MonoLabel>
-            {scrubbing ? (
-              <MonoLabel muted>
-                Tape {String(frame + 1).padStart(3, "0")} / {STORY_ATLAS.frameCount}
-              </MonoLabel>
-            ) : null}
-          </div>
-        </footer>
       </div>
     </section>
   );

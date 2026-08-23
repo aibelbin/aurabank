@@ -25,6 +25,7 @@ uniform vec2 uStoryGrid;      // columns, rows
 uniform float uStoryFrame;    // index into the atlas
 uniform float uStoryStrength; // 0 = no story on screen, 1 = full
 uniform vec2 uStoryScale;     // screen space -> frame space, aspect preserved
+uniform vec2 uStoryOffset;    // centred across, anchored to the bottom
 
 out vec4 fragColor;
 
@@ -37,7 +38,7 @@ float rosette(vec2 p, float radialFrequency, float petals, float phase) {
 
 // Ink coverage of the current story frame at this point. 1.0 is solid artwork.
 float storyInk(vec2 uv) {
-  vec2 p = uv * uStoryScale * 0.5 + 0.5;
+  vec2 p = uv * uStoryScale * 0.5 + uStoryOffset;
   if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0) return 0.0;
 
   float column = mod(uStoryFrame, uStoryGrid.x);

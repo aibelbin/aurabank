@@ -38,6 +38,28 @@ export function captionForProgress(progress: number, captionCount: number): numb
  * fitting the frame inside the viewport without distorting it (a "contain"
  * fit). Anything outside the frame simply shows the ambient engraving.
  */
+/**
+ * Where the frame sits within the viewport, as the offset half of the shader's
+ * `p = uv * scale * 0.5 + offset` mapping.
+ *
+ * Horizontally centred, but anchored to the **bottom** of the viewport rather
+ * than centred vertically. The artwork draws the two balance bars along its
+ * bottom edge, and bottom-anchoring keeps them pinned to the bottom of the
+ * screen like an instrument panel at every aspect ratio. Where the frame
+ * already fills the height, this is identical to centring.
+ */
+export function storyOffset(
+  viewportWidth: number,
+  viewportHeight: number,
+  frameAspect: number,
+): [number, number] {
+  const minDimension = Math.min(viewportWidth, viewportHeight);
+  if (minDimension <= 0 || frameAspect <= 0 || viewportHeight <= 0) return [0.5, 0.5];
+
+  const [, scaleY] = storyScale(viewportWidth, viewportHeight, frameAspect);
+  return [0.5, ((viewportHeight / minDimension) * scaleY) / 2];
+}
+
 export function storyScale(
   viewportWidth: number,
   viewportHeight: number,

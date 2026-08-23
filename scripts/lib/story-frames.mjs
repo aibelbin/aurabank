@@ -17,6 +17,7 @@ const ACT_LENGTH = FRAME_COUNT / 4;
 const PAPER = 245;
 const INK = 25;
 const TRACK = 220;
+const MID = 120;
 const GROUND = 228;
 const ROASTER_X = 138;
 const VICTIM_X = 342;
@@ -58,22 +59,27 @@ function drawGround(surface) {
   fillRect(surface, 0, GROUND + 7, FRAME_WIDTH, 2, TRACK);
 }
 
-/** Two balance bars: the ledger, visible in every frame. */
+/**
+ * Two balance bars: the ledger, and the only instrument on screen while the
+ * story runs. Outlined so it reads as a gauge — a fill against a total — rather
+ * than a floating bar, since a near-white track vanishes once engraved.
+ *
+ * Drawn along the frame's bottom edge, which the shader anchors to the bottom
+ * of the viewport at every aspect ratio.
+ */
 function drawBalances(surface, roaster, victim) {
-  const width = 132;
-  const height = 10;
-  const y = 250;
-  fillRect(surface, 44, y, width, height, TRACK);
-  fillRect(surface, 44, y, width * clamp01(roaster), height, INK);
-  fillRect(surface, FRAME_WIDTH - 44 - width, y, width, height, TRACK);
-  fillRect(
-    surface,
-    FRAME_WIDTH - 44 - width,
-    y,
-    width * clamp01(victim),
-    height,
-    INK,
-  );
+  const width = 138;
+  const height = 14;
+  const y = 246;
+
+  const gauge = (x, fraction) => {
+    fillRect(surface, x, y, width, height, MID);
+    fillRect(surface, x + 2, y + 2, width - 4, height - 4, PAPER);
+    fillRect(surface, x + 2, y + 2, (width - 4) * clamp01(fraction), height - 4, INK);
+  };
+
+  gauge(40, roaster);
+  gauge(FRAME_WIDTH - 40 - width, victim);
 }
 
 /** Expanding rings: the roast travelling across the frame. */

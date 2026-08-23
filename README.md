@@ -52,6 +52,12 @@ into the guilloché line field. Scrubbing a video file would mean seeking on
 every frame, which stutters forwards and is far worse backwards; picking an
 atlas cell costs the same in either direction.
 
+While the story runs, the viewport holds the artwork, the current step, and
+nothing else. The artwork's two **balance gauges** are the only instrumentation —
+they show aura leaving one account and arriving in another — so the section
+reserves a clear band at the bottom for them, and the shader anchors the artwork
+to the bottom of the viewport so they stay pinned there at any aspect ratio.
+
 The artwork is **atmosphere, not explanation** — the captions and the step rail
 carry the mechanic, because type at real size is always more legible than an
 engraving at 9% opacity behind it. Adding detail to the artwork was tried and
