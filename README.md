@@ -8,6 +8,22 @@ the landing page** — a single scrolling page ending in a waitlist.
 
 Design spec: [`docs/superpowers/specs/2026-08-23-aurabank-landing-design.md`](docs/superpowers/specs/2026-08-23-aurabank-landing-design.md)
 
+## Layout
+
+A monorepo, on npm workspaces.
+
+```
+apps/landing/      the landing page — its own deployable, its own database
+packages/design/   shared design system: tokens, type and motion primitives
+```
+
+Apps depend on `packages/design` and on nothing else in the repo. They never
+read each other's databases; if two apps need the same data they talk over HTTP.
+There is deliberately no `packages/db` and no `packages/types` — sharing a schema
+across apps rebuilds, at compile time, the coupling the split exists to avoid.
+Both rules are enforced by tests that fail the build on a cross-boundary import,
+because a rule that lives only in your memory will lose.
+
 ## Running it
 
 Requires Node 24+ (it uses the built-in `node:sqlite`; developed on Node 26).
@@ -19,13 +35,12 @@ npm run dev        # http://localhost:3000
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
+| `npm run dev` | Landing dev server |
+| `npm run build` | Landing production build |
 | `npm start` | Serve the production build |
-| `npm test` | Full test suite |
-| `npm run test:watch` | Tests in watch mode |
-| `npm run typecheck` | `tsc --noEmit` |
-| `node scripts/generate-story-frames.mjs` | Redraw the story atlas |
+| `npm test` | Every workspace's suite |
+| `npm run typecheck` | Every workspace |
+| `node apps/landing/scripts/generate-story-frames.mjs` | Redraw the story atlas |
 
 ## Everything is local
 
@@ -103,16 +118,50 @@ ssh fox "docker logs aurabank-cloudflared 2>&1 | grep -o 'https://.*trycloudflar
 The image is a two-stage build: the toolchain stays in the build stage, and the
 runtime carries Node, Next's standalone server, and nothing else.
 
-**State.** The waitlist database is the only stateful thing here, on the named
-volume `aurabank_waitlist-data` (mounted at `/app/data`). It survives image
-rebuilds and `docker compose down`. Back it up with:
+## Not losing the data
+
+The waitlist database is the only stateful thing here. It is a local SQLite file
+on a machine that can lose power, so durability is deliberate at three levels.
+
+**Every commit is fsynced.** `synchronous = FULL` means an acknowledged signup is
+on disk before the response returns. SQLite's default can lose the last few
+transactions on power loss — fine for a cache, not for "you're on the list".
+
+**Hourly verified snapshots.** A `backup` sidecar runs from the app's own image
+and takes `VACUUM INTO` snapshots — the only safe way to copy a live WAL
+database, since `cp` can capture a file missing recent commits or simply torn.
+Every snapshot is then opened and `PRAGMA integrity_check`-ed before it is kept,
+and a failing one is deleted rather than left looking like safety. Seven days are
+retained; each is a few kilobytes.
+
+**Snapshots live outside Docker.** They are written to `./backups` on the host,
+not a Docker volume, because `docker compose down -v` and a corrupted Docker
+state both destroy volumes — and a backup that dies with the thing it backs up is
+not a backup.
 
 ```bash
-ssh fox 'docker run --rm -v aurabank_waitlist-data:/d -v "$PWD":/out alpine \
-  tar czf /out/waitlist-backup.tgz -C /d .'
+ssh fox 'ls -la ~/aurabank/backups | tail -5'          # what exists
+ssh fox 'docker logs aurabank-backup --tail 5'          # what it last did
 ```
 
-`docker compose down -v` would **delete** it. Everything else is disposable.
+**Restore** — stop the app so nothing writes mid-restore, put the snapshot back,
+start again:
+
+```bash
+ssh fox 'cd ~/aurabank && docker compose stop web backup'
+ssh fox 'cd ~/aurabank && docker run --rm -v aurabank_waitlist-data:/d \
+  -v "$PWD/backups":/b alpine sh -c "rm -f /d/waitlist.db* && cp /b/<SNAPSHOT>.db /d/waitlist.db"'
+ssh fox 'cd ~/aurabank && docker compose start web backup'
+```
+
+**Pull a copy off the machine** — on-box snapshots do not survive a dead disk:
+
+```bash
+scp -r fox:~/aurabank/backups ./waitlist-backups-$(date +%F)
+```
+
+That last step is the only one that is still manual, and it is the one that
+matters most if the machine itself dies.
 
 **A tunnel URL is not a permanent address.** It changes whenever the container
 restarts, which `restart: unless-stopped` will do after a reboot. A stable

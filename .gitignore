@@ -8,8 +8,11 @@ next-env.d.ts
 *.tsbuildinfo
 
 # local data — the waitlist database lives here and is never committed
-data/*
-!data/.gitkeep
+apps/landing/data/*
+!apps/landing/data/.gitkeep
+
+# database snapshots written by the backup sidecar on the deployment host
+backups/
 
 # env
 .env

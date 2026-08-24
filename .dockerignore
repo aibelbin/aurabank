@@ -1,8 +1,10 @@
 .git/
 node_modules/
-.next/
-out/
-data/
+**/node_modules/
+**/.next/
+**/out/
+apps/landing/data/
+backups/
 docs/
 .env
 .env.*

@@ -2,7 +2,10 @@ name: aurabank
 
 services:
   web:
-    build: .
+    build:
+      # The whole workspace, because the app depends on packages/design.
+      context: .
+      dockerfile: apps/landing/Dockerfile
     image: aurabank-web:latest
     container_name: aurabank-web
     restart: unless-stopped
@@ -70,6 +73,43 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Verified snapshots of the waitlist, on a schedule. Runs from the app's own
+  # image, so there is no second toolchain and nothing to fetch at start.
+  #
+  # Snapshots land on a host directory rather than a Docker volume on purpose:
+  # `docker compose down -v` and a corrupted Docker state both destroy volumes,
+  # and a backup that dies with the thing it is backing up is not a backup.
+  backup:
+    image: aurabank-web:latest
+    container_name: aurabank-backup
+    restart: unless-stopped
+    depends_on:
+      - web
+    command: ["node", "scripts/backup-waitlist.mjs"]
+    environment:
+      WAITLIST_DB_PATH: /app/data/waitlist.db
+      BACKUP_DIR: /app/backups
+      BACKUP_INTERVAL_MINUTES: "60"
+      # Seven days of hourly snapshots. Each is a few kilobytes.
+      BACKUP_KEEP: "168"
+    volumes:
+      - waitlist-data:/app/data
+      - ./backups:/app/backups
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: 0.25
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
-  # Waitlist applications. Back this up; nothing else here is stateful.
+  # Live waitlist applications. Snapshots of this land in ./backups on the host.
   waitlist-data:

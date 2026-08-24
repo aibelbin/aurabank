@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "@aurabank/design/tokens.css";
+
+/* Tailwind scans the shared package too, or the classes used by its
+   primitives would never make it into the stylesheet. */
+@source "../../../../packages/design/src";

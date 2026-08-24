@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Node types are for the boundary test, which reads the source tree.
+    // The package's own source imports no Node API — its boundary test enforces that.
+    "types": ["vitest/globals", "node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}
