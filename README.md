@@ -145,13 +145,38 @@ ssh fox 'docker logs aurabank-backup --tail 5'          # what it last did
 ```
 
 **Restore** — stop the app so nothing writes mid-restore, put the snapshot back,
-start again:
+start again, then *prove writes work*:
 
 ```bash
 ssh fox 'cd ~/aurabank && docker compose stop web backup'
-ssh fox 'cd ~/aurabank && docker run --rm -v aurabank_waitlist-data:/d \
-  -v "$PWD/backups":/b alpine sh -c "rm -f /d/waitlist.db* && cp /b/<SNAPSHOT>.db /d/waitlist.db"'
+
+# --user 1000:1000 is load-bearing. A root-owned database leaves the app able to
+# read but not write: the site comes back up looking healthy while every new
+# signup fails. Ask how this is known.
+ssh fox 'cd ~/aurabank && docker run --rm --user 1000:1000 \
+  -v aurabank_waitlist-data:/d -v "$PWD/backups":/b:ro alpine \
+  sh -c "rm -f /d/waitlist.db* && cp /b/<SNAPSHOT>.db /d/waitlist.db"'
+
 ssh fox 'cd ~/aurabank && docker compose start web backup'
+
+# Verification, not optional — a restore that only reads is a broken restore.
+ssh fox 'docker exec aurabank-web node -e "
+const { DatabaseSync } = require(\"node:sqlite\");
+const db = new DatabaseSync(process.env.WAITLIST_DB_PATH);
+db.prepare(\"INSERT INTO waitlist (handle, email, created_at) VALUES (?,?,?)\")
+  .run(\"probe\", \"probe@example.invalid\", new Date().toISOString());
+db.exec(\"DELETE FROM waitlist WHERE email = \x27probe@example.invalid\x27\");
+console.log(\"writable, rows:\", db.prepare(\"SELECT COUNT(*) AS n FROM waitlist\").get().n);
+"'
+```
+
+If writes fail with `attempt to write a readonly database`, the file is
+root-owned. Fix it with:
+
+```bash
+ssh fox 'cd ~/aurabank && docker compose stop web backup &&
+  docker run --rm -v aurabank_waitlist-data:/d alpine chown -R 1000:1000 /d &&
+  docker compose start web backup'
 ```
 
 **Pull a copy off the machine** — on-box snapshots do not survive a dead disk:
