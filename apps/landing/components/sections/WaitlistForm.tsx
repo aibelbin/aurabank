@@ -1,13 +1,9 @@
 "use client";
 
-import { MonoLabel } from "@aurabank/design";
+import { Button, Field, MonoLabel } from "@aurabank/design";
 import { useActionState } from "react";
 import { applyForAccount } from "@/app/actions/waitlist";
 import { HONEYPOT_FIELD, initialWaitlistState } from "@/lib/waitlist/state";
-
-const FIELD_CLASS =
-  "w-full border-b border-ink/25 bg-transparent pb-3 text-xl tracking-[-0.01em] " +
-  "placeholder:text-ink/30 focus:border-ink focus:outline-none md:text-2xl";
 
 export function WaitlistForm() {
   const [state, submit, pending] = useActionState(applyForAccount, initialWaitlistState);
@@ -53,39 +49,29 @@ export function WaitlistForm() {
   return (
     <form action={submit} className="max-w-[36rem]" noValidate>
       <div className="space-y-10">
-        <div>
-          <label htmlFor="handle" className="block">
-            <MonoLabel muted>Handle</MonoLabel>
-          </label>
-          <input
-            id="handle"
-            name="handle"
-            type="text"
-            required
-            autoComplete="nickname"
-            maxLength={32}
-            defaultValue={values.handle}
-            placeholder="how you are known"
-            className={`mt-4 ${FIELD_CLASS}`}
-          />
-        </div>
+        <Field
+          id="handle"
+          label="Handle"
+          name="handle"
+          type="text"
+          required
+          autoComplete="nickname"
+          maxLength={32}
+          defaultValue={values.handle}
+          placeholder="how you are known"
+        />
 
-        <div>
-          <label htmlFor="email" className="block">
-            <MonoLabel muted>Email</MonoLabel>
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            maxLength={254}
-            defaultValue={values.email}
-            placeholder="where the statement goes"
-            className={`mt-4 ${FIELD_CLASS}`}
-          />
-        </div>
+        <Field
+          id="email"
+          label="Email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          maxLength={254}
+          defaultValue={values.email}
+          placeholder="where the statement goes"
+        />
       </div>
 
       {/* Honeypot. Positioned off-screen rather than hidden, because bots skip
@@ -101,13 +87,9 @@ export function WaitlistForm() {
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-12 inline-flex items-center gap-3 bg-ink px-7 py-4 font-mono text-[0.6875rem] tracking-[0.18em] text-paper uppercase transition-opacity hover:opacity-85 disabled:opacity-50"
-      >
+      <Button type="submit" disabled={pending} className="mt-12">
         {pending ? "Filing application" : "Apply for an account"}
-      </button>
+      </Button>
     </form>
   );
 }
