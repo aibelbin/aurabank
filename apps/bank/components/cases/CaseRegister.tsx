@@ -44,10 +44,21 @@ export function CaseRegister({
                     {caseNumber(legalCase.id)} · {formatRegisterDay(legalCase.filed_at)}
                   </MonoLabel>
                 </div>
+                {/* A citation is not adversarial — nobody is being sued by the
+                    bank — so it is never written as one party against another. */}
                 <p className="mt-1.5 ml-[1.125rem] truncate">
-                  {legalCase.claimant_handle}{" "}
-                  <span className="font-mono text-[0.8em] text-ink/40 italic">v</span>{" "}
-                  {legalCase.respondent_handle}
+                  {legalCase.kind === "citation" ? (
+                    <>
+                      <span className="text-ink/40 italic">In re</span>{" "}
+                      {legalCase.claimant_handle}
+                    </>
+                  ) : (
+                    <>
+                      {legalCase.claimant_handle}{" "}
+                      <span className="font-mono text-[0.8em] text-ink/40 italic">v</span>{" "}
+                      {legalCase.respondent_handle}
+                    </>
+                  )}
                 </p>
               </div>
 
