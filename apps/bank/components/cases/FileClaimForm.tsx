@@ -36,22 +36,28 @@ export function FileClaimForm({ members }: { members: Member[] }) {
           ).map(([value, title, note]) => (
             <label
               key={value}
-              className="flex min-h-16 cursor-pointer flex-col justify-center gap-1 px-4 py-3 has-checked:bg-ink has-checked:text-paper"
+              className="flex min-h-16 cursor-pointer flex-col justify-center gap-1 px-4 py-3 transition-colors has-checked:bg-ink has-checked:text-paper"
             >
-              <input
-                type="radio"
-                name="kind"
-                value={value}
-                required
-                disabled={value === "claim" && members.length === 0}
-                checked={kind === value}
-                onChange={() => setKind(value)}
-                className="sr-only"
-              />
-              <span className="font-mono text-[0.6875rem] tracking-[0.18em] uppercase">
-                {title}
+              <span className="flex items-center gap-2.5">
+                <input
+                  type="radio"
+                  name="kind"
+                  value={value}
+                  required
+                  disabled={value === "claim" && members.length === 0}
+                  checked={kind === value}
+                  onChange={() => setKind(value)}
+                  className="peer sr-only"
+                />
+                <span
+                  aria-hidden="true"
+                  className="h-[1.05rem] w-[1.05rem] shrink-0 rounded-full border-2 border-current peer-checked:bg-current"
+                />
+                <span className="font-mono text-[0.6875rem] tracking-[0.18em] uppercase">
+                  {title}
+                </span>
               </span>
-              <span className="font-mono text-[0.625rem] opacity-70">
+              <span className="ml-[1.625rem] font-mono text-[0.625rem] opacity-70">
                 {value === "claim" && members.length === 0 ? "Nobody else is open" : note}
               </span>
             </label>
@@ -67,23 +73,31 @@ export function FileClaimForm({ members }: { members: Member[] }) {
       ) : null}
 
       <Field id="respondentId" label="Respondent" className={kind === "citation" ? "hidden" : "mt-12"}>
-        <select
+        <div className="relative">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-0 bottom-4 font-mono text-[0.8125rem] text-ink/45"
+          >
+            ▾
+          </span>
+          <select
           id="respondentId"
           name="respondentId"
           required={kind === "claim"}
           disabled={kind === "citation"}
           defaultValue={values.respondentId}
-          className={cn(fieldControlClass, "appearance-none")}
-        >
-          <option value="">
-            {members.length === 0 ? "Nobody else holds an account" : "Name the other party"}
-          </option>
-          {members.map((member) => (
-            <option key={member.id} value={member.id}>
-              {member.handle}
+            className={cn(fieldControlClass, "appearance-none pr-8")}
+          >
+            <option value="">
+              {members.length === 0 ? "Nobody else holds an account" : "Name the other party"}
             </option>
-          ))}
-        </select>
+            {members.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.display_name} ({member.handle})
+              </option>
+            ))}
+          </select>
+        </div>
       </Field>
 
       {/* The schedule, set as a schedule: a rate on the left, what it is called
@@ -97,7 +111,7 @@ export function FileClaimForm({ members }: { members: Member[] }) {
           {(kind === "citation" ? CITATION_SCHEDULE : AMOUNT_SCHEDULE).map((tier) => (
             <label
               key={tier.amount}
-              className="flex min-h-14 cursor-pointer items-center justify-between gap-5 py-3 has-checked:bg-ink has-checked:text-paper has-checked:px-4"
+              className="flex min-h-14 cursor-pointer items-center justify-between gap-5 px-4 py-3 transition-colors has-checked:bg-ink has-checked:text-paper"
             >
               <span className="flex items-center gap-4">
                 <input
@@ -106,15 +120,25 @@ export function FileClaimForm({ members }: { members: Member[] }) {
                   value={tier.amount}
                   required
                   defaultChecked={values.amount === String(tier.amount)}
-                  className="sr-only"
+                  className="peer sr-only"
                   aria-describedby={`${scheduleId}-note`}
+                />
+                {/* A round mark, filled when chosen. Round because a square is
+                    what marks a case's state elsewhere, and one shape should
+                    not mean two things. Drawn in currentColor so it reads on
+                    the ink block as well as on paper. */}
+                <span
+                  aria-hidden="true"
+                  className="h-[1.05rem] w-[1.05rem] shrink-0 rounded-full border-2 border-current peer-checked:bg-current"
                 />
                 <span className="font-mono text-[0.6875rem] tracking-[0.18em] uppercase">
                   {tier.classification}
                 </span>
               </span>
+              {/* Inherits the row's colour: on the chosen tier the row is ink,
+                  and a figure fixed to text-ink would vanish into it. */}
               <span className="font-mono text-xl tabular-nums">
-                <Amount value={tier.amount} />
+                <Amount value={tier.amount} tone="inherit" />
               </span>
             </label>
           ))}

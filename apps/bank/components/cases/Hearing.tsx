@@ -1,4 +1,4 @@
-import { MonoLabel } from "@aurabank/design";
+import { MonoLabel, SectionHead } from "@aurabank/design";
 import { formatMinute } from "@/lib/format/dates";
 import type { CaseListing, RemarkListing } from "@/lib/db/types";
 
@@ -25,12 +25,9 @@ export function Hearing({
 
   return (
     <section className="mt-14">
-      <div className="flex items-baseline justify-between gap-6">
-        <MonoLabel>The hearing</MonoLabel>
-        <MonoLabel muted>
-          {remarks.length === 0 ? "Filing only" : `${remarks.length + 1} on the record`}
-        </MonoLabel>
-      </div>
+      <SectionHead aside={remarks.length === 0 ? "Filing only" : `${remarks.length + 1} on the record`}>
+        The hearing
+      </SectionHead>
 
       <ol className="mt-5 divide-y divide-hairline border-y border-hairline">
         {/* The filing is the first thing said, and always the claimant's. */}

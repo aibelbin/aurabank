@@ -1,4 +1,4 @@
-import { MonoLabel, Status } from "@aurabank/design";
+import { MonoLabel, SectionHead, Status } from "@aurabank/design";
 import type { Metadata } from "next";
 import { DocumentPage } from "@/components/chrome/DocumentPage";
 import { IssueInviteForm } from "@/components/invites/IssueInviteForm";
@@ -34,12 +34,9 @@ export default async function InvitesPage() {
       </div>
 
       <section className="mt-16">
-        <div className="flex items-baseline justify-between gap-6">
-          <MonoLabel>Register of codes</MonoLabel>
-          <MonoLabel muted>
-            {outstanding} outstanding of {invites.length}
-          </MonoLabel>
-        </div>
+        <SectionHead aside={`${outstanding} outstanding of ${invites.length}`}>
+          Register of codes
+        </SectionHead>
 
         {invites.length === 0 ? (
           <p className="mt-6 border-y border-hairline py-8 text-ink/60">

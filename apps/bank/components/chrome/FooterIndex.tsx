@@ -1,4 +1,4 @@
-import { MonoLabel } from "@aurabank/design";
+import { Button, MonoLabel } from "@aurabank/design";
 import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
 import type { Role } from "@/lib/db/types";
@@ -51,7 +51,7 @@ export function FooterIndex({
                 key={entry.href}
                 href={entry.href}
                 aria-current={here ? "page" : undefined}
-                className="flex min-h-11 items-center justify-between gap-4 py-3"
+                className="pressable -mx-3 flex min-h-14 items-center justify-between gap-4 px-3 py-3"
               >
                 <span className="flex items-center gap-3">
                   {/* Where you are is marked in ink, not in colour. */}
@@ -61,9 +61,16 @@ export function FooterIndex({
                   />
                   <MonoLabel className={here ? undefined : "text-ink/70"}>{entry.name}</MonoLabel>
                 </span>
-                {entry.count ? (
-                  <span className="font-mono text-[0.6875rem] tabular-nums">{entry.count}</span>
-                ) : null}
+                <span className="flex items-center gap-3">
+                  {entry.count ? (
+                    <span className="font-mono text-[0.6875rem] tabular-nums">{entry.count}</span>
+                  ) : null}
+                  {/* The mark that says this row goes somewhere. Every row that
+                      navigates has one; nothing that merely informs does. */}
+                  <span aria-hidden="true" className="row-arrow font-mono text-[0.8125rem] text-ink/45">
+                    →
+                  </span>
+                </span>
               </Link>
             );
           })}
@@ -72,12 +79,9 @@ export function FooterIndex({
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
           <MonoLabel muted>Signed in as {handle}</MonoLabel>
           <form action={signOut}>
-            <button
-              type="submit"
-              className="min-h-11 font-mono text-[0.6875rem] tracking-[0.18em] text-ink/60 uppercase underline decoration-ink/25 underline-offset-[6px] hover:text-ink"
-            >
+            <Button type="submit" tone="quiet" className="px-0">
               Sign out
-            </button>
+            </Button>
           </form>
         </div>
       </div>

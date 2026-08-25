@@ -1,4 +1,4 @@
-import { Amount, MonoLabel, buttonClass } from "@aurabank/design";
+import { Amount, MonoLabel, SectionHead, buttonClass } from "@aurabank/design";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocumentPage } from "@/components/chrome/DocumentPage";
@@ -35,13 +35,18 @@ export default async function StatementPage() {
       {awaitingYou > 0 ? (
         <Link
           href="/docket"
-          className="mb-10 flex min-h-14 items-center justify-between gap-5 border-y border-ink py-4"
+          className="pressable -mx-3 mb-10 flex min-h-14 items-center justify-between gap-5 border-y border-ink px-3 py-4"
         >
           <MonoLabel>
             Enclosed — {awaitingYou === 1 ? "a claim awaits" : `${awaitingYou} claims await`} your
             response
           </MonoLabel>
-          <MonoLabel muted>Read</MonoLabel>
+          <span className="flex shrink-0 items-center gap-2">
+            <MonoLabel muted>Read</MonoLabel>
+            <span aria-hidden="true" className="row-arrow font-mono text-[0.8125rem]">
+              →
+            </span>
+          </span>
         </Link>
       ) : null}
 
@@ -78,7 +83,7 @@ export default async function StatementPage() {
       </dl>
 
       <section className="mt-12 border-t border-hairline pt-8">
-        <MonoLabel muted>{inArrears ? "Balance — in arrears" : "Balance"}</MonoLabel>
+        <SectionHead>{inArrears ? "Balance — in arrears" : "Balance"}</SectionHead>
         <p className="mt-4 font-mono text-[clamp(3.25rem,17vw,5.5rem)] leading-[0.85] tracking-[-0.04em]">
           <Amount value={account.balance} tone={inArrears ? "debt" : "ink"} />
         </p>
@@ -91,14 +96,15 @@ export default async function StatementPage() {
       </section>
 
       <section className="mt-14">
-        <div className="flex items-baseline justify-between gap-6">
-          <MonoLabel>Movements</MonoLabel>
-          <MonoLabel muted>
-            {movements.length === 0
+        <SectionHead
+          aside={
+            movements.length === 0
               ? "None"
-              : `${movements.length} entr${movements.length === 1 ? "y" : "ies"}`}
-          </MonoLabel>
-        </div>
+              : `${movements.length} entr${movements.length === 1 ? "y" : "ies"}`
+          }
+        >
+          Movements
+        </SectionHead>
 
         {movements.length === 0 ? (
           <div className="mt-6 border-y border-hairline py-10">

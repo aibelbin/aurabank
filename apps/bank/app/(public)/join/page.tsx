@@ -13,7 +13,7 @@ export default async function JoinPage() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <Masthead document="Redemption" />
+      <Masthead document="Redemption" home={false} />
 
       <main className="mx-auto w-full max-w-[46rem] flex-1 px-6 pt-12 pb-14 md:px-10 md:pt-16">
         <h1 className="max-w-[18ch] text-[clamp(2rem,9vw,3.25rem)] leading-[0.98] font-semibold tracking-[-0.035em]">

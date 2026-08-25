@@ -1,4 +1,4 @@
-import { MonoLabel } from "@aurabank/design";
+import { MonoLabel, SectionHead } from "@aurabank/design";
 import type { Metadata } from "next";
 import { CaseRegister } from "@/components/cases/CaseRegister";
 import { DocumentPage } from "@/components/chrome/DocumentPage";
@@ -35,11 +35,11 @@ export default async function DocketPage() {
 
       {awaitingYou.length > 0 ? (
         <section className="mt-12">
-          <MonoLabel>
+          <SectionHead>
             {awaitingYou.length === 1
               ? "A claim awaits your reply"
               : `${awaitingYou.length} claims await your reply`}
-          </MonoLabel>
+          </SectionHead>
           <p className="mt-3 mb-5 max-w-[48ch] text-ink/70">
             Answer within the window, or the matter may be heard without you.
           </p>
@@ -48,12 +48,9 @@ export default async function DocketPage() {
       ) : null}
 
       <section className="mt-14">
-        <div className="flex items-baseline justify-between gap-6">
-          <MonoLabel>Register</MonoLabel>
-          <MonoLabel muted>
-            {cases.length === 0 ? "Nothing filed" : `${open} open of ${cases.length}`}
-          </MonoLabel>
-        </div>
+        <SectionHead aside={cases.length === 0 ? "Nothing filed" : `${open} open of ${cases.length}`}>
+          Register
+        </SectionHead>
 
         {cases.length === 0 ? (
           <div className="mt-6 border-y border-hairline py-10">

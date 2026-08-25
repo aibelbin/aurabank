@@ -29,7 +29,7 @@ export function CaseRegister({
           <li key={legalCase.id}>
             <Link
               href={`/case/${legalCase.id}`}
-              className="flex min-h-16 items-center justify-between gap-5 py-4"
+              className="pressable -mx-3 flex min-h-16 items-center justify-between gap-4 px-3 py-4"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-3">
@@ -62,11 +62,16 @@ export function CaseRegister({
                 </p>
               </div>
 
-              <div className="flex shrink-0 flex-col items-end gap-2">
-                <span className="font-mono text-base">
-                  <Amount value={legalCase.amount} />
+              <div className="flex shrink-0 items-center gap-3">
+                <div className="flex flex-col items-end gap-2">
+                  <span className="font-mono text-base">
+                    <Amount value={legalCase.amount} />
+                  </span>
+                  <Status tone={statusTone(legalCase.status)}>{statusLabel(legalCase)}</Status>
+                </div>
+                <span aria-hidden="true" className="row-arrow font-mono text-[0.8125rem] text-ink/45">
+                  →
                 </span>
-                <Status tone={statusTone(legalCase.status)}>{statusLabel(legalCase)}</Status>
               </div>
             </Link>
           </li>

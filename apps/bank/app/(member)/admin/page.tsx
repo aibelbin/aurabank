@@ -1,4 +1,4 @@
-import { MonoLabel } from "@aurabank/design";
+import { MonoLabel, SectionHead } from "@aurabank/design";
 import type { Metadata } from "next";
 import { CaseRegister } from "@/components/cases/CaseRegister";
 import { DocumentPage } from "@/components/chrome/DocumentPage";
@@ -34,12 +34,9 @@ export default async function AdminPage() {
       </p>
 
       <section className="mt-12">
-        <div className="flex items-baseline justify-between gap-6">
-          <MonoLabel>The queue</MonoLabel>
-          <MonoLabel muted>
-            {rulable.length === 0 ? "Clear" : `${rulable.length} to rule on`}
-          </MonoLabel>
-        </div>
+        <SectionHead aside={rulable.length === 0 ? "Clear" : `${rulable.length} to rule on`}>
+          The queue
+        </SectionHead>
 
         {rulable.length === 0 ? (
           <div className="mt-6 border-y border-hairline py-10">
@@ -55,7 +52,7 @@ export default async function AdminPage() {
 
       {theirs.length > 0 ? (
         <section className="mt-14">
-          <MonoLabel>Not for you</MonoLabel>
+          <SectionHead>Not for you</SectionHead>
           <p className="mt-3 mb-5 max-w-[48ch] text-ink/70">
             You are party to {theirs.length === 1 ? "this matter" : "these matters"}, so you may not
             rule on {theirs.length === 1 ? "it" : "them"}. {theirs.length === 1 ? "It waits" : "They wait"} for

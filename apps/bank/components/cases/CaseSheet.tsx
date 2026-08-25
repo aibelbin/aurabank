@@ -1,4 +1,4 @@
-import { Amount, MonoLabel, Stamp, Status } from "@aurabank/design";
+import { Amount, MonoLabel, SectionHead, Stamp, Status } from "@aurabank/design";
 import Image from "next/image";
 import type { CaseListing, ExhibitRow, RemarkListing } from "@/lib/db/types";
 import { formatDay, formatMinute, timeUntil } from "@/lib/format/dates";
@@ -121,12 +121,11 @@ export function CaseSheet({
       <Hearing legalCase={legalCase} remarks={remarks} />
 
       <section className="mt-14">
-        <div className="flex items-baseline justify-between gap-6">
-          <MonoLabel>Exhibits</MonoLabel>
-          <MonoLabel muted>
-            {exhibits.length === 0 ? "None submitted" : `${exhibits.length} in evidence`}
-          </MonoLabel>
-        </div>
+        <SectionHead
+          aside={exhibits.length === 0 ? "None submitted" : `${exhibits.length} in evidence`}
+        >
+          Exhibits
+        </SectionHead>
 
         {exhibits.length === 0 ? (
           <p className="mt-5 border-y border-hairline py-8 text-ink/60">

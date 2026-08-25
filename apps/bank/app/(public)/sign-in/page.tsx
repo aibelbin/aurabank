@@ -15,7 +15,7 @@ export default async function SignInPage() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <Masthead document="Admission" />
+      <Masthead document="Admission" home={false} />
 
       <main className="mx-auto flex w-full max-w-[46rem] flex-1 flex-col justify-between gap-16 px-6 pt-12 pb-10 md:px-10 md:pt-16">
         <div>

@@ -71,6 +71,44 @@
   animation-delay: calc(var(--char-index) * 18ms);
 }
 
+/* ── Affordance ────────────────────────────────────────────────────────────
+   One rule, applied everywhere: a box or a block means you can press it, and
+   anything you can press answers to a tap. State is marked with a glyph and
+   never boxed, so the two can never be confused again.
+
+   The press tint is the feedback, not the affordance — the affordance is the
+   arrow in the margin, which is there whether or not the device has a pointer. */
+.pressable {
+  transition: background-color 120ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pressable:active {
+  background-color: color-mix(in srgb, var(--color-ink) 8%, transparent);
+}
+
+@media (hover: hover) {
+  .pressable:hover {
+    background-color: color-mix(in srgb, var(--color-ink) 4%, transparent);
+  }
+}
+
+/* The arrow that marks a row as somewhere you can go. Nudges on press, so a
+   tap on a whole row feels like it landed on something. */
+.pressable .row-arrow {
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pressable:active .row-arrow {
+  transform: translateX(3px);
+}
+
+@media (hover: hover) {
+  .pressable:hover .row-arrow {
+    transform: translateX(3px);
+  }
+}
+
 /* Hairline rules draw left-to-right on entry. */
 @keyframes rule-draw {
   from {
@@ -169,7 +207,14 @@
   }
 
   .char,
-  .rule-line {
+  .rule-line,
+  .row-arrow {
+    transform: none !important;
+  }
+
+  /* The press tint stays — it is feedback, not motion — but nothing scales. */
+  button:active,
+  a:active {
     transform: none !important;
   }
 

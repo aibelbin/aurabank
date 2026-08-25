@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "No connection — AuraBank" };
 export default function OfflinePage() {
   return (
     <div className="flex min-h-svh flex-col">
-      <Masthead document="No connection" />
+      <Masthead document="No connection" home={false} />
 
       <main className="mx-auto flex w-full max-w-[46rem] flex-1 flex-col justify-between gap-16 px-6 pt-12 pb-10 md:px-10 md:pt-16">
         <div>

@@ -1,11 +1,13 @@
 import { cn } from "../cn";
 
-export type AmountTone = "ink" | "settle" | "debt" | "auto";
+export type AmountTone = "ink" | "settle" | "debt" | "auto" | "inherit";
 
 const TONE_CLASS = {
   ink: "text-ink",
   settle: "text-settle",
   debt: "text-debt",
+  /** Takes the colour of whatever it sits on — a figure on an ink block. */
+  inherit: "",
 } as const;
 
 /**
@@ -22,7 +24,7 @@ export function Amount({
   value,
   /** Show an explicit + or −, the way a movement is written rather than a total. */
   signed = false,
-  /** "auto" takes the colour from the sign. Accent belongs on figures alone. */
+  /** "auto" takes the colour from the sign; "inherit" takes it from the row. */
   tone = "ink",
   className,
 }: {

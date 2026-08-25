@@ -1,6 +1,6 @@
 "use client";
 
-import { Amount, Button, MonoLabel } from "@aurabank/design";
+import { Amount, Button, MonoLabel, SectionHead } from "@aurabank/design";
 import { useActionState } from "react";
 import { ActionBar } from "@/components/chrome/ActionBar";
 import { initialRulingState, type RulingState } from "@/lib/cases/state";
@@ -31,7 +31,7 @@ export function RulingActions({
 
   return (
     <form action={submit} className="mt-14 border-t border-hairline pt-10">
-      <MonoLabel>The ruling</MonoLabel>
+      <SectionHead>The ruling</SectionHead>
       <p className="mt-4 max-w-[52ch] leading-[1.55] text-ink/70">
         {citation ? (
           <>

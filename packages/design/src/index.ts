@@ -22,6 +22,7 @@ export { Amount } from "./ui/Amount";
 export type { AmountTone } from "./ui/Amount";
 export { Mantra } from "./ui/Mantra";
 export { Section } from "./ui/Section";
+export { SectionHead } from "./ui/SectionHead";
 
 export { SplitHeadline } from "./motion/SplitHeadline";
 export { splitText, countChars } from "./motion/split-text";
