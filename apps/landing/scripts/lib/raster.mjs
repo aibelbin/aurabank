@@ -57,3 +57,43 @@ export function blit(atlas, surface, originX, originY) {
     atlas.pixels.set(surface.pixels.subarray(y * surface.width, (y + 1) * surface.width), target);
   }
 }
+
+/**
+ * Area-average downscale.
+ *
+ * Frames are drawn at full size and shrunk here rather than drawn small: the
+ * choreography is written in one coordinate system, and re-tuning every stage
+ * mark to fit a smaller frame would be a rewrite for a memory saving. Averaging
+ * over the source box keeps the anti-aliasing that `stroke` already produced,
+ * which a nearest-neighbour pick would throw away.
+ */
+export function resample(surface, width, height) {
+  const out = createSurface(width, height, 0);
+  const scaleX = surface.width / width;
+  const scaleY = surface.height / height;
+
+  for (let y = 0; y < height; y += 1) {
+    const y0 = y * scaleY;
+    const y1 = Math.min(surface.height, (y + 1) * scaleY);
+    for (let x = 0; x < width; x += 1) {
+      const x0 = x * scaleX;
+      const x1 = Math.min(surface.width, (x + 1) * scaleX);
+
+      let total = 0;
+      let weight = 0;
+      for (let sy = Math.floor(y0); sy < y1; sy += 1) {
+        // Partial rows and columns at the edges of the box count fractionally.
+        const wy = Math.min(sy + 1, y1) - Math.max(sy, y0);
+        for (let sx = Math.floor(x0); sx < x1; sx += 1) {
+          const wx = Math.min(sx + 1, x1) - Math.max(sx, x0);
+          const w = wx * wy;
+          total += surface.pixels[sy * surface.width + sx] * w;
+          weight += w;
+        }
+      }
+      out.pixels[y * width + x] = weight > 0 ? Math.round(total / weight) : 0;
+    }
+  }
+
+  return out;
+}

@@ -31,20 +31,56 @@ describe("landing page", () => {
     expect(markup).toContain("data-story-scrub");
   });
 
-  it("discloses that aura is zero-sum", () => {
-    expect(markup).toContain("Aura is zero-sum.");
-    expect(markup).toContain("There is no aura printer.");
-    expect(markup).toContain("We hold no reserves.");
+  it("says plainly what the bank is for", () => {
+    expect(markup).toContain("This is AuraBank.");
+    expect(markup).toContain("and stores your aura.");
+  });
+
+  it("names what moves a balance, and what it costs", () => {
+    expect(markup).toContain("A sigma moment credits it.");
+    expect(markup).toContain("aura-minus evidence, debits it");
+  });
+
+  it("explains that a hearing comes before any movement", () => {
+    expect(markup).toContain("Nothing moves on a say-so.");
+    expect(markup).toContain("a judge rules");
   });
 
   it("explains aura debt without flinching", () => {
-    expect(markup).toContain("A balance can go below zero.");
-    expect(markup).toContain("there is no bankruptcy protection");
+    expect(markup).toContain("it may go below zero");
+    expect(markup).toContain("We call that");
+    expect(markup).toContain("aura debt");
   });
 
-  it("shows the specimen balance in arrears", () => {
-    expect(markup).toContain("−1,240");
-    expect(markup).toContain("text-debt");
+  it("shows a specimen settlement as a loop, playable without JavaScript", () => {
+    // A stepped CSS sheet rather than a video or a canvas: it is the only kind
+    // of loop that still runs with scripting off and still stops when someone
+    // has asked for less motion.
+    expect(markup).toContain("/duel/duel-sheet.png");
+    // The grid, stepped on both axes, both ends included.
+    expect(markup).toContain("steps(8, jump-none)");
+    expect(markup).toContain("steps(6, jump-none)");
+    // A lighter sheet for phones, chosen in the stylesheet rather than by script.
+    expect(markup).toContain("/duel/duel-sheet-half.png");
+    // The plate is captioned. Deliberately not the exact sentence: the caption
+    // is copy under active revision, and a quoted string here would fail on
+    // every wording change without protecting anything.
+    expect(markup).toMatch(/<figcaption[^>]*>.*\S.*<\/figcaption>/s);
+  });
+
+  /**
+   * The band sits on a page that already holds a WebGL canvas and the story
+   * atlas in texture memory. Sliding an oversized image behind a window would
+   * promote a 23-megapixel composited layer — measured, and it is what made
+   * scrolling past it stutter. Painting a background keeps the element one
+   * frame in size. This asserts the cheap technique is the one in the markup,
+   * because the expensive one looks identical in a screenshot.
+   */
+  it("steps the band by painting, not by transforming an oversized layer", () => {
+    expect(markup).toContain("background-size");
+    expect(markup).toContain("--sprite-src");
+    expect(markup).not.toContain("sprite-sheet-rows");
+    expect(markup).not.toContain("sprite-sheet-columns");
   });
 
   it("still carries the mantra", () => {

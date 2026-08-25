@@ -6,9 +6,15 @@ export function Hero() {
       id="hero"
       className="relative flex min-h-[100svh] flex-col justify-between px-6 pt-8 pb-10 md:px-12 md:pt-10 md:pb-12"
     >
-      <div className="flex items-baseline justify-between">
-        <MonoLabel>AuraBank</MonoLabel>
-        <MonoLabel muted>Established 2026</MonoLabel>
+      {/* The letterhead, signed. The wordmark is not repeated here — it is
+          already the headline below, at three hundred times the size. The
+          sentiment carries the ink and the name is set quietly beside it,
+          which is the same weighting the page uses everywhere else. */}
+      <div className="flex items-baseline justify-between gap-6">
+        <MonoLabel>With lots of sigma aura</MonoLabel>
+        <MonoLabel muted className="text-right">
+          Aibel Bin Zacariah
+        </MonoLabel>
       </div>
 
       <div className="mx-auto w-full max-w-[72rem]">

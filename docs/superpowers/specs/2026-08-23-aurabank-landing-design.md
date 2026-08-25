@@ -121,14 +121,17 @@ The **balance gauges drawn into the artwork are the only instrumentation**, and 
 
 Without JavaScript, or under reduced motion, every step renders as a plain numbered list with its explanation — the most informative state of the page, readable with no scrolling at all.
 
-### 03 — Full disclosure
-> Aura is zero-sum. Your gain is someone's loss. There is no aura printer.
->
-> We do not issue aura. We hold no reserves. We move what already exists, between the people who earned and lost it.
->
-> A balance can go below zero. We call this aura debt. It accrues, it is visible to everyone, and there is no bankruptcy protection.
+### 03 — Nature of business
 
-Alongside, a ledger: `Aura issued by AuraBank — 0`, `Reserves held — 0`, `Specimen balance — in arrears — −1,240`.
+**Revised 2026-08-25.** This beat used to open with *"Aura is zero-sum. Your gain is someone's loss. There is no aura printer."* It stated a property of the system to a reader who had not yet been told what the system was. It now says what the bank is first, and lets the ledger beside it carry the zero-sum claim.
+
+> This is AuraBank. A bank that holds and stores your aura.
+>
+> Your aura is a number here, not an argument. A sigma moment credits it. A roast, or any other aura-minus evidence, debits it.
+>
+> Nothing moves on a say-so. A claim is filed with evidence, the respondent replies, and a judge rules. Only then does the balance change — and it may go below zero. We call that aura debt.
+
+Alongside, a ledger: `Aura issued by AuraBank — 0`, `Reserves held — 0`, `Specimen balance — in arrears — −1,240`. These figures are what now carries "we issue nothing and hold nothing" — the headline no longer has to.
 
 ### 04 — Open an account
 > AuraBank is not yet accepting deposits.

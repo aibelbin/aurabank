@@ -9,7 +9,11 @@ export function SiteFooter() {
           AuraBank is not a bank. Not FDIC insured. Not insured in any way. Aura balances have no
           cash value and never will.
         </p>
-        <MonoLabel muted>AuraBank — Established 2026</MonoLabel>
+        {/* The colophon. The only place on the page that is not the bank
+            talking, and the same mark the letterhead carries. */}
+        <MonoLabel muted className="md:text-right">
+          With lots of sigma aura, Aibel Bin Zacariah
+        </MonoLabel>
       </div>
     </footer>
   );

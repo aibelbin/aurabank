@@ -3,10 +3,14 @@
 The central bank of aura. Aura is not created. It is transferred.
 
 A web app rebuilt from scratch (the v1 Kotlin/Compose Android app lives at tag
-`pre-rebuild-2026-08-23`). This repository currently contains **sub-project 1:
-the landing page** — a single scrolling page ending in a waitlist.
+`pre-rebuild-2026-08-23`). Two sub-projects are built:
 
-Design spec: [`docs/superpowers/specs/2026-08-23-aurabank-landing-design.md`](docs/superpowers/specs/2026-08-23-aurabank-landing-design.md)
+- **The landing page** — a single scrolling page ending in a waitlist.
+  [Spec](docs/superpowers/specs/2026-08-23-aurabank-landing-design.md)
+- **The clearing house** — a bank that holds hearings. Accounts, invite codes,
+  filing a case, the respondent's reply, the public docket, judgment, and aura
+  moving atomically. [Spec](docs/superpowers/specs/2026-08-25-aurabank-app-design.md)
+  · [README](apps/bank/README.md)
 
 ## Layout
 
@@ -14,6 +18,7 @@ A monorepo, on npm workspaces.
 
 ```
 apps/landing/      the landing page — its own deployable, its own database
+apps/bank/         the clearing house — its own deployable, its own database
 packages/design/   shared design system: tokens, type and motion primitives
 ```
 
@@ -30,17 +35,27 @@ Requires Node 24+ (it uses the built-in `node:sqlite`; developed on Node 26).
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev        # the landing page — http://localhost:3000
+npm run dev:bank   # the clearing house — http://localhost:3001
 ```
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Landing dev server |
-| `npm run build` | Landing production build |
-| `npm start` | Serve the production build |
+| `npm run dev` / `npm run dev:bank` | Dev server for the landing page / the bank |
+| `npm run build` / `npm run build:bank` | Production build |
+| `npm start` / `npm start:bank` | Serve the production build |
 | `npm test` | Every workspace's suite |
 | `npm run typecheck` | Every workspace |
+| `npm run export-waitlist` | Print the waitlist, for issuing invite codes |
+| `npm run check-ledger --workspace apps/bank` | Re-derive every balance from the ledger |
+| `npm run icons --workspace apps/bank` | Redraw the PWA icons |
 | `node apps/landing/scripts/generate-story-frames.mjs` | Redraw the story atlas |
+| `node apps/landing/scripts/generate-duel-frames.mjs` | Redraw the duel loop in section 03 |
+
+The bank needs `BANK_JUDGE_HANDLE`, `BANK_JUDGE_EMAIL` and `BANK_JUDGE_PASSWORD`
+the first time it runs, to open the first account — an invite code needs an
+issuer, and the first issuer cannot have been invited. See
+[`apps/bank/README.md`](apps/bank/README.md).
 
 ## Everything is local
 
@@ -48,14 +63,26 @@ The page makes **zero external requests at runtime** — no CDN, no Google Fonts
 no analytics, no hosted database. Fonts are bundled as woff2 and served by the
 app itself. `lib/__tests__/local-only.test.ts` fails the build if that changes.
 
-Waitlist applications are stored in a local SQLite file at `data/waitlist.db`
-(gitignored, created on first write). Override the location with
-`WAITLIST_DB_PATH`.
+Waitlist applications are stored in a local SQLite file at
+`apps/landing/data/waitlist.db` (`WAITLIST_DB_PATH`). The bank's ledger lives at
+`apps/bank/data/bank.db` (`BANK_DB_PATH`) with exhibits as files under
+`apps/bank/evidence` (`BANK_EVIDENCE_DIR`). All gitignored, all created on first
+write.
 
 **Deployment constraint:** local SQLite needs a persistent Node process. On a
-serverless host the filesystem is ephemeral and signups would be discarded
-silently. Migrating to Postgres means reimplementing `lib/waitlist/store.ts` and
-nothing else.
+serverless host the filesystem is ephemeral and signups — or balances — would be
+discarded silently. Migrating to Postgres means reimplementing
+`apps/landing/lib/waitlist/store.ts` and `apps/bank/lib/db/`, and nothing else.
+
+## Aura is money
+
+The bank's ledger is the truth and `accounts.balance` is a cache of it. A ruling
+writes both ledger entries and both balances in one transaction, and pays
+exactly once — enforced by `UNIQUE (case_id, account_id)` on the ledger rather
+than by care in the handler. `npm run check-ledger --workspace apps/bank`
+re-derives every balance from the ledger and exits non-zero if they disagree;
+the hourly backup runs the same reconciliation and refuses to keep a snapshot
+that fails it.
 
 ## The story
 
@@ -117,6 +144,36 @@ ssh fox "docker logs aurabank-cloudflared 2>&1 | grep -o 'https://.*trycloudflar
 
 The image is a two-stage build: the toolchain stays in the build stage, and the
 runtime carries Node, Next's standalone server, and nothing else.
+
+### The bank
+
+Its own compose project, image, and volumes, so deploying one app cannot
+restart the other and losing one app's data cannot touch the other's.
+
+```bash
+# Ship the committed tree — `git archive HEAD` sends commits, not your
+# working copy. Uncommitted work does not reach the server.
+git archive HEAD | ssh fox 'tar -x -C ~/aurabank'
+
+# The bench's account, read once when there are no members yet.
+scp .env fox:~/aurabank/.env      # from .env.example; BANK_JUDGE_* set
+
+ssh fox 'cd ~/aurabank && docker compose -f compose.bank.yaml up -d --build'
+ssh fox "docker logs aurabank-bank-cloudflared 2>&1 | grep -o 'https://.*trycloudflare.com'"
+```
+
+**`up -d --build` never touches a named volume.** It rebuilds the image and
+recreates the container; `waitlist-data`, `bank-data` and `bank-evidence`
+survive. The command that destroys data is `down -v` — and there is no reason
+to run it here. Redeploying the landing page is the same command against
+`compose.yaml`, and the waitlist survives it for the same reason.
+
+Verify a deploy kept the data:
+
+```bash
+ssh fox 'docker exec aurabank-bank node scripts/check-ledger.mjs'
+ssh fox 'docker exec aurabank-web sh -c "wc -l < /dev/null"; docker logs aurabank-backup --tail 3'
+```
 
 ## Not losing the data
 
