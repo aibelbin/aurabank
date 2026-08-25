@@ -1,0 +1,142 @@
+# The bank is its own compose project, its own image, and its own volumes.
+#
+# Separate from the landing page on purpose. One owner per database: the two
+# apps share a repository and a design system, and nothing else. Deploying a
+# fix to the landing page must not be able to restart the ledger, and losing
+# the landing page's volume must not be able to touch anyone's balance.
+#
+#   docker compose -f compose.bank.yaml up -d --build
+name: aurabank-bank
+
+services:
+  bank:
+    build:
+      # The whole workspace, because the app depends on packages/design.
+      context: .
+      dockerfile: apps/bank/Dockerfile
+    image: aurabank-bank:latest
+    container_name: aurabank-bank
+    restart: unless-stopped
+    environment:
+      BANK_DB_PATH: /app/data/bank.db
+      BANK_EVIDENCE_DIR: /app/evidence
+      # Read once, when the accounts table is empty, to open the first account.
+      # An invite code needs an issuer and an issuer needs an account, so
+      # something has to start outside that loop. Set these in a .env file
+      # beside this one; leaving them set afterwards does nothing.
+      BANK_JUDGE_HANDLE: ${BANK_JUDGE_HANDLE:?set BANK_JUDGE_HANDLE in .env}
+      BANK_JUDGE_NAME: ${BANK_JUDGE_NAME:?set BANK_JUDGE_NAME in .env}
+      BANK_JUDGE_EMAIL: ${BANK_JUDGE_EMAIL:?set BANK_JUDGE_EMAIL in .env}
+      BANK_JUDGE_PASSWORD: ${BANK_JUDGE_PASSWORD:?set BANK_JUDGE_PASSWORD in .env}
+      # The account number the bench holds. Members open from the next one up.
+      BANK_JUDGE_ID: ${BANK_JUDGE_ID:-7}
+    volumes:
+      # The ledger and the exhibits are separate volumes: they have different
+      # sizes, different growth rates, and one is trivially large.
+      - bank-data:/app/data
+      - bank-evidence:/app/evidence
+    read_only: true
+    tmpfs:
+      - /tmp
+      # Next writes its runtime caches here; nothing in it needs to persist.
+      - /app/.next/cache
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: 1.0
+    mem_limit: 512m
+    healthcheck:
+      # /sign-in is the only page that renders without a session.
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/sign-in"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Free Cloudflare quick tunnel, the same way the landing page is served.
+  #
+  # The hostname is randomly assigned and CHANGES whenever this container
+  # restarts. Read the current one with:
+  #   docker logs aurabank-bank-cloudflared 2>&1 | grep -o 'https://.*trycloudflare.com'
+  #
+  # A changing hostname is survivable here because sessions are cookies scoped
+  # to that hostname: a restart signs everybody out. Put a named tunnel in
+  # front of this before anyone is relying on staying signed in.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: aurabank-bank-cloudflared
+    restart: unless-stopped
+    depends_on:
+      bank:
+        condition: service_healthy
+    command: tunnel --no-autoupdate --url http://bank:8080
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: 0.5
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Verified snapshots of the ledger and the exhibits, on a schedule. Runs from
+  # the app's own image, so there is no second toolchain and nothing to fetch.
+  #
+  # Snapshots land on a host directory rather than a Docker volume on purpose:
+  # `docker compose down -v` and a corrupted Docker state both destroy volumes,
+  # and a backup that dies with the thing it is backing up is not a backup.
+  #
+  # Every snapshot is integrity-checked AND reconciled — balances re-derived
+  # from the ledger must agree — so a corrupt one is never kept.
+  backup:
+    image: aurabank-bank:latest
+    container_name: aurabank-bank-backup
+    restart: unless-stopped
+    depends_on:
+      - bank
+    command: ["node", "scripts/backup-bank.mjs"]
+    environment:
+      BANK_DB_PATH: /app/data/bank.db
+      BANK_EVIDENCE_DIR: /app/evidence
+      BACKUP_DIR: /app/backups
+      BACKUP_INTERVAL_MINUTES: "60"
+      # Seven days of hourly snapshots.
+      BACKUP_KEEP: "168"
+    volumes:
+      - bank-data:/app/data
+      # Read-only: the backup has no business writing to the evidence store.
+      - bank-evidence:/app/evidence:ro
+      - ./backups/bank:/app/backups
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: 0.25
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  # The ledger. Snapshots of this land in ./backups/bank on the host.
+  bank-data:
+  # Exhibits. Copied alongside every snapshot — a restore that returns the
+  # cases without their plates returns a docket nobody can re-read.
+  bank-evidence:

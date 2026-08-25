@@ -9,8 +9,12 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace apps/landing",
+    "dev:bank": "npm run dev --workspace apps/bank",
     "build": "npm run build --workspace apps/landing",
+    "build:bank": "npm run build --workspace apps/bank",
     "start": "npm run start --workspace apps/landing",
+    "start:bank": "npm run start --workspace apps/bank",
+    "export-waitlist": "npm run export-waitlist --workspace apps/landing --",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },

@@ -4,6 +4,8 @@ node_modules/
 **/.next/
 **/out/
 apps/landing/data/
+apps/bank/data/
+apps/bank/evidence/
 backups/
 docs/
 .env

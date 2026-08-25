@@ -21,3 +21,9 @@ backups/
 
 # os
 .DS_Store
+
+# local data — the bank's ledger and the exhibits it holds, never committed
+apps/bank/data/*
+!apps/bank/data/.gitkeep
+apps/bank/evidence/*
+!apps/bank/evidence/.gitkeep

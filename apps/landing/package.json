@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "export-waitlist": "node scripts/export-waitlist.mjs",
+    "duel-frames": "node scripts/generate-duel-frames.mjs",
+    "story-frames": "node scripts/generate-story-frames.mjs"
   },
   "dependencies": {
     "@aurabank/design": "*"
