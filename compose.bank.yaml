@@ -118,6 +118,9 @@ services:
       - bank-data:/app/data
       # Read-only: the backup has no business writing to the evidence store.
       - bank-evidence:/app/evidence:ro
+      # Create this directory yourself before the first `up`, or Docker makes
+      # it root-owned and the unprivileged process inside cannot write to it:
+      #   mkdir -p backups/bank
       - ./backups/bank:/app/backups
     read_only: true
     tmpfs:

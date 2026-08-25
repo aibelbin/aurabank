@@ -22,38 +22,18 @@
 import { DatabaseSync } from "node:sqlite";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { reconcile } from "./lib/reconcile.mjs";
 
 const SOURCE = process.env.BANK_DB_PATH ?? "/app/data/bank.db";
 const EVIDENCE = process.env.BANK_EVIDENCE_DIR ?? "/app/evidence";
 const DIRECTORY = process.env.BACKUP_DIR ?? "/app/backups";
 const INTERVAL_MINUTES = Number(process.env.BACKUP_INTERVAL_MINUTES ?? 60);
 const KEEP = Number(process.env.BACKUP_KEEP ?? 168);
-const OPENING_BALANCE = 3000;
 
 const log = (message) => console.log(`[backup] ${new Date().toISOString()} ${message}`);
 
 /** ISO order is also lexical order, so pruning can sort by filename. */
 const stamp = () => new Date().toISOString().replace(/[:.]/g, "-");
-
-/** The same reconciliation `scripts/check-ledger.mjs` runs, against a snapshot. */
-function reconcile(db) {
-  const movements = new Map(
-    db
-      .prepare("SELECT account_id, SUM(delta) AS total FROM ledger_entries GROUP BY account_id")
-      .all()
-      .map((row) => [row.account_id, row.total]),
-  );
-
-  for (const account of db.prepare("SELECT id, handle, balance FROM accounts").all()) {
-    const derived = OPENING_BALANCE + (movements.get(account.id) ?? 0);
-    if (derived !== account.balance) {
-      throw new Error(`${account.handle} holds ${account.balance}, ledger says ${derived}`);
-    }
-  }
-
-  const { total } = db.prepare("SELECT COALESCE(SUM(delta), 0) AS total FROM ledger_entries").get();
-  if (total !== 0) throw new Error(`ledger sums to ${total}, not zero`);
-}
 
 function snapshotLedger(at) {
   const target = join(DIRECTORY, `bank-${at}.db`);
@@ -69,7 +49,11 @@ function snapshotLedger(at) {
   try {
     const { integrity_check: verdict } = copy.prepare("PRAGMA integrity_check").get();
     if (verdict !== "ok") throw new Error(`integrity check failed: ${verdict}`);
-    reconcile(copy);
+
+    // Verified, not just copied: a snapshot that restores a wrong balance is
+    // worse than no snapshot, because it looks like safety.
+    const { problems } = reconcile(copy);
+    if (problems.length > 0) throw new Error(problems.join("; "));
 
     const { accounts } = copy.prepare("SELECT COUNT(*) AS accounts FROM accounts").get();
     const { cases } = copy.prepare("SELECT COUNT(*) AS cases FROM cases").get();

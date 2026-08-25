@@ -36,9 +36,12 @@ ENV NODE_ENV=production \
 COPY --from=build /repo/apps/bank/.next/standalone ./
 COPY --from=build /repo/apps/bank/.next/static ./apps/bank/.next/static
 COPY --from=build /repo/apps/bank/public ./apps/bank/public
-# The backup sidecar and the consistency check run from this same image.
+# The backup sidecar and the consistency check run from this same image, and
+# both read the ledger through scripts/lib/reconcile.mjs — copy the directory
+# rather than naming files, or the shared module goes missing at runtime.
 COPY --from=build /repo/apps/bank/scripts/backup-bank.mjs ./scripts/backup-bank.mjs
 COPY --from=build /repo/apps/bank/scripts/check-ledger.mjs ./scripts/check-ledger.mjs
+COPY --from=build /repo/apps/bank/scripts/lib ./scripts/lib
 
 # All three are mount points. Creating them here with the right owner matters:
 # Docker copies an image directory's ownership onto a fresh volume.
