@@ -13,7 +13,10 @@ export function FileClaimForm({ members }: { members: Member[] }) {
   const [state, submit, pending] = useActionState(fileClaim, initialFileState);
   const values = state.status === "error" ? state.values : { respondentId: "", amount: "", statement: "" };
   const [plates, setPlates] = useState<string[]>([]);
-  const [kind, setKind] = useState<"claim" | "citation">("claim");
+  // With nobody else on the books there is no claim to make, only a citation.
+  const [kind, setKind] = useState<"claim" | "citation">(
+    members.length === 0 ? "citation" : "claim",
+  );
   const scheduleId = useId();
 
   return (
@@ -40,6 +43,7 @@ export function FileClaimForm({ members }: { members: Member[] }) {
                 name="kind"
                 value={value}
                 required
+                disabled={value === "claim" && members.length === 0}
                 checked={kind === value}
                 onChange={() => setKind(value)}
                 className="sr-only"
@@ -47,7 +51,9 @@ export function FileClaimForm({ members }: { members: Member[] }) {
               <span className="font-mono text-[0.6875rem] tracking-[0.18em] uppercase">
                 {title}
               </span>
-              <span className="font-mono text-[0.625rem] opacity-70">{note}</span>
+              <span className="font-mono text-[0.625rem] opacity-70">
+                {value === "claim" && members.length === 0 ? "Nobody else is open" : note}
+              </span>
             </label>
           ))}
         </div>
@@ -69,7 +75,9 @@ export function FileClaimForm({ members }: { members: Member[] }) {
           defaultValue={values.respondentId}
           className={cn(fieldControlClass, "appearance-none")}
         >
-          <option value="">Name the other party</option>
+          <option value="">
+            {members.length === 0 ? "Nobody else holds an account" : "Name the other party"}
+          </option>
           {members.map((member) => (
             <option key={member.id} value={member.id}>
               {member.handle}

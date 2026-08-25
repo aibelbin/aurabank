@@ -23,16 +23,12 @@ export default async function FilePage() {
         Nothing moves until a judgment is entered.
       </p>
 
-      {members.length === 0 ? (
-        <p className="mt-12 border-y border-hairline py-10 text-ink/60">
-          There is nobody to file against. A claim requires two parties, and yours is the only
-          account open.
-        </p>
-      ) : (
-        <div className="mt-12">
-          <FileClaimForm members={members} />
-        </div>
-      )}
+      {/* A citation names nobody, so the form still has work to do even when
+          yours is the only account open — it is only the claim half that needs
+          somebody on the other side. */}
+      <div className="mt-12">
+        <FileClaimForm members={members} />
+      </div>
     </DocumentPage>
   );
 }
