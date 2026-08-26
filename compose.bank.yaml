@@ -60,7 +60,13 @@ services:
     # No ports — the app shares the Tailscale sidecar's namespace. See compose.yaml.
     network_mode: service:tailscale
     depends_on:
-      - tailscale
+      tailscale:
+        condition: service_started
+        # Sharing a namespace means sharing its lifetime: when the sidecar is
+        # replaced the kernel takes the namespace with it and Docker stops this
+        # container. `restart: true` brings it back with the new one. Restart
+        # the stack with `up -d`, never `docker compose restart tailscale`.
+        restart: true
     environment:
       BANK_DB_PATH: /app/data/bank.db
       BANK_EVIDENCE_DIR: /app/evidence

@@ -63,7 +63,13 @@ services:
     # nothing else can reach it at all.
     network_mode: service:tailscale
     depends_on:
-      - tailscale
+      tailscale:
+        condition: service_started
+        # Sharing a namespace means sharing its lifetime: when the sidecar is
+        # replaced the kernel takes the namespace with it and Docker stops this
+        # container. `restart: true` brings it back with the new one. Restart
+        # the stack with `up -d`, never `docker compose restart tailscale`.
+        restart: true
     environment:
       # The waitlist database is the only state; it lives on the volume below.
       WAITLIST_DB_PATH: /app/data/waitlist.db
