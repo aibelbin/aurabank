@@ -107,10 +107,16 @@ Checked before building, not discovered afterwards.
   `aurabank-one.vercel.app` in `serverActions.allowedOrigins`.
 
   It has to be the *exact* hostname Vercel actually serves. `aurabank.vercel.app`
-  was already taken by an older project, so this one is `aurabank-one`, and a
-  guess at the name fails with a 500 and a minified React error rather than
-  anything that names the cause. The server log is explicit — grep
-  `docker logs aurabank-web` for "does not match".
+  belongs to **someone else** — an unrelated Vercel account — so this project is
+  `aurabank-one`, and a guess at the name fails with a 500 and a minified React
+  error rather than anything that names the cause. The server log is explicit:
+  grep `docker logs aurabank-web` for "does not match".
+
+  **Never put `aurabank.vercel.app` in this list.** Everything named here is
+  permitted to post a Server Action to the app, so listing a domain a stranger
+  controls would let a page they serve submit the waitlist form — and, if the
+  bank were ever proxied, file claims and enter judgments. Verified rejected:
+  a replayed action carrying `Origin: aurabank.vercel.app` is aborted.
 
   **If a Vercel project is ever put in front of the bank, its domain must be
   added to `apps/bank/next.config.ts` too.** The bank currently lists only its
