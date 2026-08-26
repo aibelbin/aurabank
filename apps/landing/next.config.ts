@@ -15,6 +15,29 @@ const nextConfig: NextConfig = {
   // File tracing has to start at the workspace root, or the standalone output
   // misses everything that lives outside this app — the design package included.
   outputFileTracingRoot: path.join(here, "../../"),
+  async headers() {
+    return [
+      {
+        /**
+         * The one document this app serves, told not to sit in a CDN.
+         *
+         * Next marks a prerendered page `s-maxage=31536000` and expects the
+         * host to purge it on deploy. Vercel does that for apps it hosts; here
+         * it is only a proxy and never learns that fox rebuilt, so it went on
+         * serving year-old HTML. That HTML carries the previous build's Server
+         * Action ids and content-hashed script URLs, so after a redeploy the
+         * page could neither hydrate nor submit — "Server Action not found".
+         *
+         * Only the document. Everything under /_next/static is content-hashed
+         * and keeps its immutable year, which is where the bytes actually are:
+         * the sheet, the fonts, the JavaScript. This costs one uncached 30KB
+         * document per visit and buys correctness on every deploy.
+         */
+        source: "/",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+    ];
+  },
   experimental: {
     serverActions: {
       /**
