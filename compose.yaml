@@ -1,6 +1,46 @@
 name: aurabank
 
 services:
+  # Tailscale as a sidecar, one node per app.
+  #
+  # This is what makes two apps possible at all. Funnel only ever listens on
+  # 443, 8443 or 10000, and on this host 443 and 8443 already belong to other
+  # services — one free port between two apps. A sidecar gives each app its
+  # own node, its own hostname and therefore its own 443, so neither has to
+  # queue for a port and nothing else on the machine is disturbed.
+  #
+  # It is also the tighter arrangement: the app publishes no host port at all
+  # and is reachable only from inside this namespace. Same pattern as tikwah.
+  tailscale:
+    image: tailscale/tailscale:stable
+    container_name: aurabank-tailscale
+    hostname: aurabank
+    restart: unless-stopped
+    environment:
+      # Optional. With a key the node joins unattended; without one,
+      # containerboot prints a login URL to the logs to be visited once.
+      # Either way the node identity is kept on the volume below, so this is
+      # a first-run concern only. Never committed — it lives in .env.
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_HOSTNAME: aurabank
+      TS_STATE_DIR: /var/lib/tailscale
+      # Userspace networking: this node serves, it never routes or exits, so
+      # it needs neither NET_ADMIN nor a TUN device.
+      TS_USERSPACE: "true"
+      TS_SERVE_CONFIG: /config/serve.json
+    volumes:
+      - ts-state:/var/lib/tailscale
+      - ./ts-serve.json:/config/serve.json:ro
+    security_opt:
+      - no-new-privileges:true
+    cpus: 0.5
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   web:
     build:
       # The whole workspace, because the app depends on packages/design.
@@ -9,6 +49,12 @@ services:
     image: aurabank-web:latest
     container_name: aurabank-web
     restart: unless-stopped
+    # No ports, on the host or anywhere else: the app shares the Tailscale
+    # sidecar's network namespace, so Funnel reaches it on loopback and
+    # nothing else can reach it at all.
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
     environment:
       # The waitlist database is the only state; it lives on the volume below.
       WAITLIST_DB_PATH: /app/data/waitlist.db
@@ -34,39 +80,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # Free Cloudflare quick tunnel: a public, CDN-backed URL with no domain and
-  # no account, the same way tikwah is served.
-  #
-  # Unlike tikwah this shares a bridge network with the app rather than a
-  # tailscale container's namespace, so it reaches the app by service name.
-  # Adding a tailnet node would need a TS_AUTHKEY.
-  #
-  # The hostname is randomly assigned and CHANGES whenever this container
-  # restarts. Read the current one with:
-  #   docker logs aurabank-cloudflared 2>&1 | grep -o 'https://.*trycloudflare.com'
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: aurabank-cloudflared
-    restart: unless-stopped
-    depends_on:
-      web:
-        condition: service_healthy
-    command: tunnel --no-autoupdate --url http://web:8080
-    read_only: true
-    tmpfs:
-      - /tmp
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    cpus: 0.5
-    mem_limit: 256m
     logging:
       driver: json-file
       options:
@@ -113,3 +126,6 @@ services:
 volumes:
   # Live waitlist applications. Snapshots of this land in ./backups on the host.
   waitlist-data:
+  # The Tailscale node's identity. Without this the node re-authenticates on
+  # every restart and its hostname drifts, which would change the public URL.
+  ts-state:

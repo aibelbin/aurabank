@@ -15,6 +15,21 @@ const nextConfig: NextConfig = {
   // File tracing has to start at the workspace root, or the standalone output
   // misses everything that lives outside this app — the design package included.
   outputFileTracingRoot: path.join(here, "../../"),
+  experimental: {
+    serverActions: {
+      /**
+       * Every form here is a Server Action, and Next rejects one whose Origin
+       * does not match its Host — a CSRF protection, and the right default.
+       * Behind a proxy the two never match: the browser sends the public
+       * domain and the server sees its own. Without these entries sign-in,
+       * filing and the waitlist all fail with 403 and no useful message.
+       *
+       * Public hostnames only. Adding one here says "a form served from this
+       * domain may post to me", so the list stays as short as the truth.
+       */
+      allowedOrigins: ["aurabank.vercel.app", "fox.tailcc00e1.ts.net"],
+    },
+  },
 };
 
 export default nextConfig;

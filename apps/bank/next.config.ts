@@ -20,6 +20,20 @@ const nextConfig: NextConfig = {
     // it blocked. On a phone that matters: a reply filed with one bar is sent
     // when the signal returns rather than silently doing nothing.
     useOffline: true,
+    serverActions: {
+      /**
+       * Every form here is a Server Action, and Next rejects one whose Origin
+       * does not match its Host — a CSRF protection, and the right default.
+       * Behind a proxy the two never match: the browser sends the public
+       * domain and the server sees its own. Without these entries sign-in,
+       * filing a claim and entering judgment all fail with 403 and no useful
+       * message.
+       *
+       * Public hostnames only. Adding one here says "a form served from this
+       * domain may post to me", so the list stays as short as the truth.
+       */
+      allowedOrigins: ["aurabank.vercel.app", "fox.tailcc00e1.ts.net"],
+    },
   },
   async headers() {
     return [
