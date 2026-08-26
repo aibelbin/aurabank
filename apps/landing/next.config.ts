@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
        * Public hostnames only. Adding one here says "a form served from this
        * domain may post to me", so the list stays as short as the truth.
        */
-      allowedOrigins: ["aurabank.vercel.app", "fox.tailcc00e1.ts.net"],
+      allowedOrigins: ["aurabank-one.vercel.app", "aurabank.tailcc00e1.ts.net"],
     },
   },
 };

@@ -1,12 +1,12 @@
 # Vercel as a proxy, not a host
 
-`aurabank.vercel.app` is a front door and nothing else. The application runs on
+`aurabank-one.vercel.app` is a front door and nothing else. The application runs on
 `fox`, in Docker, and stays there. Vercel holds no code, no database and no
 state — it forwards requests to a Tailscale Funnel hostname and returns the
 answer.
 
 ```
-aurabank.vercel.app  →  Vercel  →  Tailscale Funnel  →  fox  →  Docker
+aurabank-one.vercel.app  →  Vercel  →  Tailscale Funnel  →  fox  →  Docker
 ```
 
 ## What is in the repository
@@ -38,7 +38,7 @@ aurabank.vercel.app  →  Vercel  →  Tailscale Funnel  →  fox  →  Docker
 - **`outputDirectory: "public"`** is the subtle one. With the preset set to
   "Other" and no `public` directory, Vercel falls back to serving **the
   repository root** — `package.json`, the source tree, `docs/`, all of it, at
-  `aurabank.vercel.app`. Worse, static files are matched *before* rewrites, so
+  `aurabank-one.vercel.app`. Worse, static files are matched *before* rewrites, so
   those paths would stop being proxied. `public/` is committed and empty for
   exactly this reason; see the note inside it.
 - **`rewrites`** proxies (the browser's URL never changes). A *redirect* would
@@ -55,8 +55,7 @@ Each app is its own Tailscale node, so each has its own `:443`:
 | Landing | `aurabank.tailcc00e1.ts.net` | `aurabank-web` |
 | Bank | `aurabank-bank.tailcc00e1.ts.net` | `aurabank-bank` |
 
-`vercel.json` points at the **landing**, matching what `aurabank.vercel.app`
-implies. To point the domain at the bank instead, change the one hostname in
+`vercel.json` points at the **landing**, matching what the domain implies. To point the domain at the bank instead, change the one hostname in
 `destination`. To publish both, make a second Vercel project whose
 `vercel.json` targets the bank — one project proxies one app, because both
 apps generate root-relative URLs and neither can live under a path prefix
@@ -102,14 +101,23 @@ Checked before building, not discovered afterwards.
   today. But a future feature that needs a socket (live docket updates, say)
   will not work through this path and would have to talk to the `ts.net`
   hostname directly.
-- **Server Actions would 403 without configuration.** Next compares a Server
-  Action's `Origin` against its `Host` and rejects mismatches as CSRF. Behind a
-  proxy they never match. Both apps list `aurabank.vercel.app` in
-  `serverActions.allowedOrigins`; remove it and every form on the site stops
-  working — sign-in, filing, rulings, the waitlist.
+- **Server Actions fail without the exact proxy domain listed.** Next compares
+  a Server Action's `Origin` against the forwarded host and rejects mismatches
+  as CSRF; behind a proxy they never match. The landing lists
+  `aurabank-one.vercel.app` in `serverActions.allowedOrigins`.
+
+  It has to be the *exact* hostname Vercel actually serves. `aurabank.vercel.app`
+  was already taken by an older project, so this one is `aurabank-one`, and a
+  guess at the name fails with a 500 and a minified React error rather than
+  anything that names the cause. The server log is explicit — grep
+  `docker logs aurabank-web` for "does not match".
+
+  **If a Vercel project is ever put in front of the bank, its domain must be
+  added to `apps/bank/next.config.ts` too.** The bank currently lists only its
+  own funnel hostname, because nothing else reaches it.
 - **Uploads are capped well below the app's own limit.** A Vercel proxied
   request body is limited to ~4.5MB; an exhibit may be 5MB. A large screenshot
-  filed through `aurabank.vercel.app` will fail at the edge before it reaches
+  filed through `aurabank-one.vercel.app` will fail at the edge before it reaches
   the bank. Filing through the `ts.net` hostname has no such cap.
 - **Response streaming is preserved**, so Next's streaming SSR still works, but
   a response has a finite window at the edge. Nothing here is long-polling.
