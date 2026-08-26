@@ -1,0 +1,11 @@
+This directory is deliberately empty.
+
+Vercel serves this project's "output directory" as static files, and anything
+it finds here is served *instead of* being proxied — the filesystem is checked
+before rewrites. An empty directory means every path falls through to the
+rewrite in vercel.json, which is the whole point of the project.
+
+It cannot simply be deleted. With the framework preset set to "Other" and no
+`public` directory present, Vercel falls back to serving the repository root,
+which would publish package.json, the source tree and docs/ at
+aurabank.vercel.app — and shadow the proxy for those paths.

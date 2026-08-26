@@ -11,16 +11,40 @@ aurabank.vercel.app  →  Vercel  →  Tailscale Funnel  →  fox  →  Docker
 
 ## What is in the repository
 
-`vercel.json` — a single catch-all rewrite. A *rewrite* proxies (the browser's
-URL never changes); a *redirect* would bounce the visitor to the `ts.net`
-hostname and defeat the point.
+`vercel.json`, and every field in it is load-bearing:
 
 ```json
-{ "source": "/:path*", "destination": "https://aurabank.tailcc00e1.ts.net/:path*" }
+{
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "echo 'proxy-only project: nothing is built here'",
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/:path*", "destination": "https://aurabank.tailcc00e1.ts.net/:path*" }
+  ]
+}
 ```
 
-Nothing is built or deployed from this repository to Vercel. There is no
-framework preset to select and no build command to run.
+- **`framework: null`** is how you select "Other". Without it Vercel finds
+  `next` in the root `package.json` and presets Next.js.
+- **`buildCommand`** overrides the Build Command *and the `build` script in
+  `package.json`*. Without it Vercel runs the root script — `npm run build
+  --workspace apps/landing` — and tries to build and host the application,
+  which is the one thing this arrangement exists to prevent. It is a harmless
+  `echo` rather than an empty string so that "no build" cannot be
+  misread as "no override, use the default".
+- **`installCommand: ""`** skips installation. An empty string is documented
+  to skip it, and there is nothing to install for an `echo`.
+- **`outputDirectory: "public"`** is the subtle one. With the preset set to
+  "Other" and no `public` directory, Vercel falls back to serving **the
+  repository root** — `package.json`, the source tree, `docs/`, all of it, at
+  `aurabank.vercel.app`. Worse, static files are matched *before* rewrites, so
+  those paths would stop being proxied. `public/` is committed and empty for
+  exactly this reason; see the note inside it.
+- **`rewrites`** proxies (the browser's URL never changes). A *redirect* would
+  bounce the visitor to the `ts.net` hostname and defeat the point.
+
+Nothing is built or deployed from this repository to Vercel.
 
 ## The two hostnames
 
@@ -40,15 +64,33 @@ without a `basePath`, which would change every URL it emits.
 
 ## Setting it up in the dashboard
 
-This part cannot be done from the repository.
+`vercel.json` overrides the dashboard for the build settings — the docs say so
+for each field: *"This value overrides the Framework / Build Command / Install
+Command / Output Directory in Project Settings."* So the presets there do not
+need touching, and changing them will not help if something is wrong.
+
+**One setting is the exception, and it is the one that bites.** *Root
+Directory* has no `vercel.json` equivalent; it exists only in the dashboard. If
+it is set to anything other than the repository root — and Vercel's monorepo
+detection is happy to point it at `apps/landing` on import — then:
+
+- `vercel.json` is outside the root and **is never read**, so none of the
+  above applies;
+- Vercel builds whatever it finds there instead.
+
+To check: **Project → Settings → Build and Deployment → Root Directory.** It
+must be **empty** (the repository root). The docs are explicit that with a root
+directory set, *"your app will not be able to access files outside of that
+directory"*.
+
+On first import:
 
 1. **New Project → import `aibelbin/aurabank`.**
-2. **Framework Preset: Other.** Not Next.js — Vercel would try to build and
-   host the app, which is the thing we are avoiding.
-3. **Build Command: leave empty. Output Directory: leave empty.** There is
-   nothing to build.
-4. **Root Directory: leave as the repository root**, so `vercel.json` is found.
-5. Deploy. The result serves no files of its own; every path is proxied.
+2. **Root Directory: leave empty.** If the import screen has pre-filled
+   `apps/landing`, clear it.
+3. Everything else can be left alone — `vercel.json` sets it.
+4. Deploy. The build log should show the `echo`, no `npm install`, and no
+   `next build`.
 
 ## Limitations of proxying through Vercel
 
