@@ -1,12 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-
   "framework": null,
   "installCommand": "",
   "buildCommand": "echo 'proxy-only project: nothing is built here'",
   "outputDirectory": "public",
-
   "rewrites": [
+    {
+      "source": "/",
+      "destination": "https://aurabank.tailcc00e1.ts.net/"
+    },
     {
       "source": "/:path*",
       "destination": "https://aurabank.tailcc00e1.ts.net/:path*"
