@@ -1,5 +1,14 @@
 name: aurabank
 
+# The landing page, served to the public over Tailscale Funnel.
+#
+# No port is published on the host. The app shares its Tailscale sidecar's
+# network namespace, so Funnel reaches it on loopback inside that namespace and
+# nothing else on the machine can reach it at all.
+#
+#   docker compose up -d --build
+#   https://aurabank.tailcc00e1.ts.net
+
 services:
   # Tailscale as a sidecar, one node per app.
   #
